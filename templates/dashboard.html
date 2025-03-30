@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>📅 Dein Dashboard</h2>
+
+<!-- Neue Termine -->
+<section>
+    <h3>Neuen Termin hinzufügen</h3>
+    <form method="POST">
+        <input type="text" name="event_title" placeholder="Titel" required><br>
+        <input type="date" name="event_date" required><br>
+        <button type="submit">+ Termin hinzufügen</button>
+    </form>
+</section>
+
+<!-- Neue Aufgaben -->
+<section>
+    <h3>Neue Aufgabe</h3>
+    <form method="POST">
+        <input type="text" name="task_description" placeholder="Aufgabe" required><br>
+        <button type="submit">+ Aufgabe hinzufügen</button>
+    </form>
+</section>
+
+<!-- Termine -->
+<section>
+    <h3>🗓️ Deine Termine</h3>
+    {% if events %}
+        <ul>
+            {% for event in events %}
+            <li>
+                {{ event.title }} am {{ event.date }}
+                <a href="/event/delete/{{ event.id }}">🗑️</a>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Termine eingetragen.</p>
+    {% endif %}
+</section>
+
+<!-- Aufgaben -->
+<section>
+    <h3>✅ Deine Aufgaben</h3>
+    {% if tasks %}
+        <ul>
+            {% for task in tasks %}
+            <li>
+                <form action="/task/done/{{ task.id }}" method="GET" style="display:inline;">
+                    <button type="submit">{{ '✅' if task.done else '⬜' }}</button>
+                </form>
+                {{ task.description }}
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Aufgaben eingetragen.</p>
+    {% endif %}
+</section>
+
+<!-- Export -->
+<section style="margin-top: 20px;">
+    <a href="/export">📥 Daten als CSV exportieren</a>
+</section>
+
+{% endblock %}

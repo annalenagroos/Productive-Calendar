@@ -1,62 +1,106 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Event, Task
-from datetime import datetime
-
-routes_bp = Blueprint('routes', __name__)
-
-@routes_bp.route('/')
+@app.route('/')
 def index():
-    events = Event.query.order_by(Event.date).all()
-    tasks = Task.query.all()
-    return render_template('index.html', events=events, tasks=tasks)
+    return render_template('index.html')
 
-@routes_bp.route('/add_event', methods=['GET', 'POST'])
-def add_event():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if request.method == 'POST':
-        title = request.form['title']
-        date = datetime.strptime(request.form['date'], '%Y-%m-%dT%H:%M')
-        description = request.form.get('description', '')
-        new_event = Event(title=title, date=date, description=description)
-        db.session.add(new_event)
+        username = request.form['username']
+        password = generate_password_hash(request.form['password'])
+        if User.query.filter_by(username=username).first():
+            flash('Username exists!')
+            return redirect(url_for('register'))
+        new_user = User(username=username, password=password)
+        db.session.add(new_user)
         db.session.commit()
-        flash('Event erfolgreich hinzugefügt!', 'success')
-        return redirect(url_for('routes.index'))
-    return render_template('add_event.html')
+        return redirect(url_for('login'))
+    return render_template('register.html')
 
-@routes_bp.route('/add_task', methods=['GET', 'POST'])
-def add_task():
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        title = request.form['title']
-        new_task = Task(title=title)
-        db.session.add(new_task)
-        db.session.commit()
-        flash('Aufgabe erfolgreich hinzugefügt!', 'success')
-        return redirect(url_for('routes.index'))
-    return render_template('add_task.html')
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('dashboard'))
+        flash('Invalid credentials')
+    return render_template('login.html')
 
-@routes_bp.route('/complete_task/<int:id>')
-def complete_task(id):
-    task = Task.query.get(id)
-    if task:
-        task.completed = True
-        db.session.commit()
-        flash('Aufgabe erledigt!', 'success')
-    return redirect(url_for('routes.index'))
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('index'))
 
-@routes_bp.route('/delete_event/<int:id>')
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    events = Event.query.filter_by(user_id=user_id).all()
+    tasks = Task.query.filter_by(user_id=user_id).all()
+
+    if request.method == 'POST':
+        if 'event_title' in request.form:
+            title = request.form['event_title']
+            date = datetime.strptime(request.form['event_date'], '%Y-%m-%d')
+            new_event = Event(title=title, date=date, user_id=user_id)
+            db.session.add(new_event)
+            db.session.commit()
+            return redirect(url_for('dashboard'))
+
+        if 'task_description' in request.form:
+            description = request.form['task_description']
+            new_task = Task(description=description, user_id=user_id)
+            db.session.add(new_task)
+            db.session.commit()
+            return redirect(url_for('dashboard'))
+
+    return render_template('dashboard.html', events=events, tasks=tasks)
+
+@app.route('/task/done/<int:id>')
+def task_done(id):
+    task = Task.query.get_or_404(id)
+    task.done = not task.done
+    db.session.commit()
+    return redirect(url_for('dashboard'))
+
+@app.route('/event/delete/<int:id>')
 def delete_event(id):
-    event = Event.query.get(id)
-    if event:
-        db.session.delete(event)
-        db.session.commit()
-        flash('Event gelöscht!', 'danger')
-    return redirect(url_for('routes.index'))
+    event = Event.query.get_or_404(id)
+    db.session.delete(event)
+    db.session.commit()
+    return redirect(url_for('dashboard'))
 
-@routes_bp.route('/delete_task/<int:id>')
-def delete_task(id):
-    task = Task.query.get(id)
-    if task:
-        db.session.delete(task)
-        db.session.commit()
-        flash('Aufgabe gelöscht!', 'danger')
-    return redirect(url_for('routes.index'))
+@app.route('/export')
+def export():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    events = Event.query.filter_by(user_id=user_id).all()
+    tasks = Task.query.filter_by(user_id=user_id).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Type', 'Title/Description', 'Date/Status'])
+
+    for event in events:
+        writer.writerow(['Event', event.title, event.date])
+
+    for task in tasks:
+        writer.writerow(['Task', task.description, 'Done' if task.done else 'Pending'])
+
+    output.seek(0)
+
+    return send_file(io.BytesIO(output.getvalue().encode()),
+                     mimetype='text/csv',
+                     as_attachment=True,
+                     download_name='calendar_export.csv')
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)

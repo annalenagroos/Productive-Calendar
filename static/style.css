@@ -1,0 +1,165 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+nav {
+    background-color: #6200ee;
+    color: white;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin-right: 15px;
+    font-weight: 500;
+    transition: color 0.4s ease;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+nav button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    animation: fadeIn 0.6s ease-in-out;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+h1, h2, h3, p, li, a {
+    transition: color 0.4s ease;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+form input, form button {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px 0;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+form button {
+    background-color: #6200ee;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+form button:hover {
+    background-color: #4500b5;
+    box-shadow: 0 0 8px rgba(98, 0, 238, 0.7);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    background: white;
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+a {
+    color: #6200ee;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.flash-message {
+    background-color: #ffe0e0;
+    color: #a10000;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    animation: slideIn 0.5s ease-out;
+}
+
+/* Animation: Smooth Fade-In */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation: Slide-in Flash */
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* -------------------- DARK MODE -------------------- */
+.dark body {
+    background-color: #121212;
+    color: #eee;
+}
+
+.dark nav {
+    background-color: #1f1f1f;
+}
+
+.dark nav a, 
+.dark nav button {
+    color: #eee;
+}
+
+.dark .container, 
+.dark li, 
+.dark .flash-message {
+    background-color: #1f1f1f;
+    color: #eee;
+}
+
+.dark form button {
+    background-color: #bb86fc;
+}
+
+.dark a {
+    color: #bb86fc;
+}
+
+.dark a:hover {
+    color: #82aaff;
+}
+
+.dark .flash-message {
+    background-color: #3a1c1c;
+    color: #ffcaca;
+}

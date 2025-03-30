@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Productive Calendar{% endblock %}</title>
+    
+    <!-- Hier wählst du das Design -->
+    <!-- Clean Version -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style-clean.css') }}"> -->
+    
+    <!-- Fancy Version -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div>
+            <a href="/">🏠 Home</a>
+            {% if session.get('user_id') %}
+                <a href="/dashboard">📅 Dashboard</a>
+                <a href="/logout">🚪 Logout</a>
+            {% else %}
+                <a href="/login">🔑 Login</a>
+                <a href="/register">📝 Register</a>
+            {% endif %}
+        </div>
+        <button id="darkModeToggle">🌙</button>
+    </nav>
+
+    <!-- Flash-Messages -->
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    
+        {% block content %}{% endblock %}
+    </div>    
+
+    <!-- Dark Mode Toggle -->
+    <script>
+        const toggle = document.getElementById('darkModeToggle');
+        toggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+        });
+    </script>
+
+</body>
+</html>
