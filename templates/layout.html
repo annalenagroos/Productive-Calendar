@@ -1,56 +1,69 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Productive Calendar{% endblock %}</title>
-    
-    <!-- Hier wählst du das Design -->
-    <!-- Clean Version -->
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style-clean.css') }}"> -->
-    
-    <!-- Fancy Version -->
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
 
-    <!-- Navbar -->
-    <nav>
-        <div>
-            <a href="/">🏠 Home</a>
-            {% if session.get('user_id') %}
-                <a href="/dashboard">📅 Dashboard</a>
-                <a href="/logout">🚪 Logout</a>
-            {% else %}
-                <a href="/login">🔑 Login</a>
-                <a href="/register">📝 Register</a>
-            {% endif %}
-        </div>
-        <button id="darkModeToggle">🌙</button>
-    </nav>
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <!-- Flash-Messages -->
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-left">
+      <a href="/"> <span class="material-icons">home</span> Home</a> <!-- Home Icon -->
+      {% if session.get('user_id') %}
+        <a href="/dashboard"> <span class="material-icons">calendar_today</span> Dashboard</a> <!-- Dashboard Icon -->
+        <a href="/logout"> <span class="material-icons">exit_to_app</span> Logout</a> <!-- Logout Icon -->
+      {% else %}
+        <a href="/login"> <span class="material-icons">login</span> Login</a> <!-- Login Icon -->
+        <a href="/register"> <span class="material-icons">person_add</span> Register</a> <!-- Register Icon -->
+      {% endif %}
+    </div>
+  
+<!-- Profil Dropdown -->
+<div class="profile-dropdown">
+    <button class="profile-icon">
+        <span class="material-icons">account_circle</span>
+    </button>
+    <div class="dropdown-content">
+        <a href="/profile/edit">Profil bearbeiten</a> <!-- Diese Zeile entfernen -->
+        <a href="/profile/delete">Profil löschen</a> <!-- Diese Zeile entfernen -->
+    </div>
+</div>
+  </nav>  
+
+    <!-- Page content -->
     <div class="container">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-message">
-                    {% for message in messages %}
-                        <p>{{ message }}</p>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-    
-        {% block content %}{% endblock %}
-    </div>    
+      {% block content %}{% endblock %}
+    </div>
 
-    <!-- Dark Mode Toggle -->
     <script>
-        const toggle = document.getElementById('darkModeToggle');
-        toggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-        });
+      function toggleProfileMenu() {
+        var dropdown = document.getElementById("profileDropdown");
+        dropdown.classList.toggle("show");
+      }
+
+      // Close the dropdown menu if the user clicks outside of it
+      window.onclick = function(event) {
+        if (!event.target.matches('.profile-icon')) {
+          var dropdowns = document.getElementsByClassName("dropdown-content");
+          for (var i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+              openDropdown.classList.remove('show');
+            }
+          }
+        }
+      }
     </script>
 
-</body>
+  </body>
 </html>

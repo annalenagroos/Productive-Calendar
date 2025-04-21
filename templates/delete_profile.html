@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container">
+  <h2>Profil löschen</h2>
+  <p>Möchtest du dein Profil wirklich löschen?</p>
+  <form method="POST" action="/profile/delete">
+    <div class="form-group">
+      <button type="submit" class="btn btn-danger">Profil löschen</button>
+    </div>
+  </form>
+  <a href="/dashboard" class="btn btn-secondary">Abbrechen</a>
+</div>
+{% endblock %}

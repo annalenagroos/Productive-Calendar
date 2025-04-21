@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
+    </nav>
+
+    <div class="profile-container">
+        <h2>Benutzerprofil</h2>
+        <p><strong>Benutzername:</strong> {{ user.username }}</p>
+        <p><strong>E-Mail:</strong> {{ user.email }}</p>
+        
+        <a href="{{ url_for('edit_profile') }}" class="btn">Profil bearbeiten</a>
+        <form action="{{ url_for('delete_profile') }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn">Profil löschen</button>
+        </form>
+    </div>
+</body>
+</html>
