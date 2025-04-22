@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import csv
 import io
+import calendar
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'
@@ -122,10 +123,18 @@ def dashboard():
             db.session.commit()
             return redirect(url_for('dashboard'))
 
+    # Kalender für den aktuellen Monat erstellen
+    year = datetime.now().year
+    month = datetime.now().month
+    cal = calendar.HTMLCalendar(calendar.SUNDAY)
+    month_calendar = cal.formatmonth(year, month)
+
+    # Events und Tasks aus der Datenbank abfragen
     events = Event.query.filter_by(user_id=user_id).all()
     tasks = Task.query.filter_by(user_id=user_id).all()
 
-    return render_template('dashboard.html', events=events, tasks=tasks, now=datetime.now())
+    # Kalender und andere Daten an das Template übergeben
+    return render_template('dashboard.html', events=events, tasks=tasks, now=datetime.now(), month_calendar=month_calendar)
 
 @app.route('/task/done/<int:id>')
 def task_done(id):
