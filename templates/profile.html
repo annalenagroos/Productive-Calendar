@@ -4,22 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil</title>
+    <!-- Link zum externen Stylesheet für das Layout der Seite -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Navigation mit Links zu Home, Dashboard und Logout -->
     <nav class="navbar">
-        <a href="/">Home</a>
-        <a href="/dashboard">Dashboard</a>
-        <a href="/logout">Logout</a>
+        <a href="/">Home</a> <!-- Home-Link -->
+        <a href="/dashboard">Dashboard</a> <!-- Dashboard-Link -->
+        <a href="/logout">Logout</a> <!-- Logout-Link -->
     </nav>
 
     <div class="profile-container">
         <h2>Benutzerprofil</h2>
+
+        <!-- Anzeige des Benutzernamens -->
         <p><strong>Benutzername:</strong> {{ user.username }}</p>
+        <!-- Anzeige der E-Mail-Adresse des Benutzers -->
         <p><strong>E-Mail:</strong> {{ user.email }}</p>
-        
+
+        <!-- Button zum Bearbeiten des Profils -->
         <a href="{{ url_for('edit_profile') }}" class="btn">Profil bearbeiten</a>
+
+        <!-- Formular zum Löschen des Profils -->
         <form action="{{ url_for('delete_profile') }}" method="POST" style="display:inline;">
+            <!-- Button zum Löschen des Profils -->
             <button type="submit" class="btn">Profil löschen</button>
         </form>
     </div>

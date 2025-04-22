@@ -1,14 +1,22 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<!-- Container für den gesamten Profil löschen Bereich -->
 <div class="container">
   <h2>Profil löschen</h2>
+  <!-- Erklärung für den Benutzer, dass das Löschen des Profils endgültig ist -->
   <p>Möchtest du dein Profil wirklich löschen?</p>
+  
+  <!-- Formular zum Löschen des Profils -->
+  <!-- Achtung: Das Löschen eines Profils ist eine irreversible Aktion. -->
   <form method="POST" action="/profile/delete">
     <div class="form-group">
+      <!-- Löschen-Button, der das Profil endgültig entfernt -->
       <button type="submit" class="btn btn-danger">Profil löschen</button>
     </div>
   </form>
+  
+  <!-- Abbrechen-Link, um zum Dashboard zurückzukehren -->
   <a href="/dashboard" class="btn btn-secondary">Abbrechen</a>
 </div>
 {% endblock %}

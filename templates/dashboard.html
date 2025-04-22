@@ -3,15 +3,17 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<!-- Header mit dem Titel und einer Dropdown-Liste für das Benutzerprofil -->
 <div class="topbar">
     <h2 class="page-title"><span class="material-icons">calendar_today</span> Dein Dashboard</h2>
   <div class="profile-dropdown">
+    <!-- Hier könnte der Dropdown für das Profil des Benutzers sein -->
   </div>
 </div>
 
 <div class="grid-container">
 
-    <!-- Termin hinzufügen -->
+    <!-- Formular zum Hinzufügen eines neuen Termins -->
     <div class="card">
         <h3>Neuen Termin hinzufügen</h3>
         <form method="POST">
@@ -21,7 +23,7 @@
         </form>
     </div>
 
-    <!-- Aufgabe hinzufügen -->
+    <!-- Formular zum Hinzufügen einer neuen Aufgabe -->
     <div class="card">
         <h3>Neue Aufgabe</h3>
         <form method="POST">
@@ -30,24 +32,24 @@
         </form>
     </div>
 
-    <!-- Termine anzeigen -->
+    <!-- Bereich für die Anzeige der Termine -->
     <div class="card">
-        <h3><span class="material-icons">calendar_today</span> Deine Termine</h3> 
+        <h3><span class="material-icons">calendar_today</span> Deine Termine</h3>
         {% if events %}
             <ul>
                 {% for event in events %}
                 <li>
                     <span>{{ event.title }} am {{ event.date }}</span>
-                    <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a>
+                    <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a> <!-- Löschen eines Ereignisses -->
                 </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Keine Termine eingetragen.</p>
+            <p>Keine Termine eingetragen.</p> <!-- Anzeige, wenn keine Ereignisse vorhanden sind -->
         {% endif %}
     </div>
 
-    <!-- Aufgaben anzeigen -->
+    <!-- Bereich für die Anzeige der Aufgaben -->
     <div class="card">
         <h3><span class="material-icons">checklist</span> Deine Aufgaben</h3>
         {% if tasks %}
@@ -61,54 +63,58 @@
                             </button>
                         </form>
                         <span>{{ task.description }}</span>
-                        <a href="/task/delete/{{ task.id }}" class="delete-link">🗑️</a>
+                        <a href="/task/delete/{{ task.id }}" class="delete-link">🗑️</a> <!-- Löschen einer Aufgabe -->
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>Keine Aufgaben eingetragen.</p>
+            <p>Keine Aufgaben eingetragen.</p> <!-- Anzeige, wenn keine Aufgaben vorhanden sind -->
         {% endif %}
     </div>
     
-    <!-- Kalender -->
+    <!-- Bereich zur Anzeige des Kalenders -->
     <div class="card">
         <h3>Kalender</h3>
         <div class="calendar">
+            <!-- Hier wird der Kalender dynamisch gerendert -->
             {{ month_calendar | safe }}
         </div>
     </div>
 
-    <!-- Export -->
+    <!-- Bereich für den Export von Daten -->
     <div class="card export-card">
-        <a href="/export">📥 Daten als CSV exportieren</a>
+        <a href="/export">📥 Daten als CSV exportieren</a> <!-- Link zum Export der Daten -->
     </div>
 </div>
 {% endblock %}
 
 {% block styles %}
+<!-- Einbinden des Stylesheets für den Kalender -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
 {% endblock %}
 
 {% block scripts %}
+<!-- Einbinden des FullCalendar-Stylesheets und Skripts -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    // Initialisierung des FullCalendar
     const calendarEl = document.getElementById('calendar');
     if (calendarEl) {
       const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'de',
-        height: 600,
+        initialView: 'dayGridMonth', // Standardansicht des Kalenders
+        locale: 'de', // Sprache des Kalenders
+        height: 600, // Kalenderhöhe
         headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,listMonth'
+          left: 'prev,next today', // Navigation für vorherige, nächste und heutige Ansicht
+          center: 'title', // Titel des Kalenders
+          right: 'dayGridMonth,listMonth' // Monatansicht und Listenansicht
         },
-        events: '/api/events'
+        events: '/api/events' // Quelle für Ereignisdaten
       });
-      calendar.render();
+      calendar.render(); // Kalender rendern
     }
   });
 </script>

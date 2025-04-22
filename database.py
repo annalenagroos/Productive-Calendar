@@ -17,7 +17,7 @@ def create_db():
         )
     ''')
     
-    # Speichere die Änderungen und schließe die Verbindung
+    # Speichere die Änderungen und schliesse die Verbindung
     conn.commit()
     conn.close()
 
@@ -34,7 +34,7 @@ def add_event(title, date, description):
         VALUES (?, ?, ?)
     ''', (title, date, description))
     
-    # Änderungen speichern und Verbindung schließen
+    # Änderungen speichern und Verbindung schliessen
     conn.commit()
     conn.close()
 
@@ -47,7 +47,7 @@ def get_events():
     cursor.execute('SELECT * FROM events')
     events = cursor.fetchall()  # Alle Ereignisse abrufen
     
-    # Verbindung schließen und zurückgeben
+    # Verbindung schliessen und zurückgeben
     conn.close()
     return events
 
@@ -59,6 +59,6 @@ def delete_event(event_id):
     # SQL-Befehl zum Löschen eines Ereignisses
     cursor.execute('DELETE FROM events WHERE id = ?', (event_id,))
     
-    # Änderungen speichern und Verbindung schließen
+    # Änderungen speichern und Verbindung schliessen
     conn.commit()
     conn.close()

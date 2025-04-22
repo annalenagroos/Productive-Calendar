@@ -1,44 +1,50 @@
+/* Farbdefinitionen für die Website */
 :root {
-    --main-color: #009688;
-    --main-color-dark: #00796b;
+    --main-color: #009688;  /* Hauptfarbe der Website */
+    --main-color-dark: #00796b;  /* Dunklere Variante der Hauptfarbe */
 }
 
+/* Import der Schriftart 'Inter' von Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
+/* Universelle Box-Sizing-Regel, um das Padding und die Border innerhalb der Breite und Höhe eines Elements zu berücksichtigen */
 * {
     box-sizing: border-box;
 }
 
+/* Grundlegendes Styling für den Body */
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', sans-serif;  /* Setzt die Schriftart der gesamten Seite */
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
+    background-color: #f9f9f9;  /* Hintergrundfarbe der Seite */
+    color: #333;  /* Textfarbe */
 }
 
 /* Styling für den Kalender */
 .calendar {
-    display: flex;               /* Flexbox verwenden */
-    justify-content: center;     /* Horizontal zentrieren */
-    align-items: center;         /* Vertikal zentrieren */
+    display: flex;               /* Flexbox wird verwendet, um Elemente nebeneinander zu platzieren */
+    justify-content: center;     /* Horizontale Zentrierung */
+    align-items: center;         /* Vertikale Zentrierung */
     font-family: 'Inter', sans-serif;
-    background-color: #ffffff;
-    border-radius: 12px;
+    background-color: #ffffff;   /* Weisser Hintergrund */
+    border-radius: 12px;         /* Abgerundete Ecken */
     padding: 20px;
-    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.1);
-    color: #333;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.1); /* Sanfter Schatten */
+    color: #333;                 /* Textfarbe */
     width: 100%;
     height: 80%;
-    margin: 0 auto;              /* Um den Container im übergeordneten Element zu zentrieren */
+    margin: 0 auto;              /* Automatische Zentrierung des Containers */
 }
 
+/* Styling für die Tabelle des Kalenders */
 .calendar table {
-    width: 80%;                  /* Breite auf 80% setzen */
-    border-collapse: collapse;
-    text-align: center;
+    width: 80%;                  /* Tabelle nimmt 80% der Breite ein */
+    border-collapse: collapse;   /* Entfernt doppelte Ränder zwischen Zellen */
+    text-align: center;          /* Zentrierter Text in den Zellen */
 }
 
+/* Styling für Tabellenüberschriften */
 .calendar th {
     color: black;
     font-size: 14px;
@@ -47,49 +53,54 @@ body {
     border-radius: 8px;
 }
 
+/* Styling für die Kalenderzellen */
 .calendar td {
     font-size: 12px;
     padding: 15px;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    border: 1px solid #ddd;  /* Graue Umrandung */
+    cursor: pointer;         /* Mauszeiger wird zum Zeiger */
+    transition: background-color 0.3s ease; /* Sanfte Transition für den Hintergrund bei Hover */
 }
 
+/* Hintergrundfarbe der Zellen beim Hover */
 .calendar td:hover {
-    background-color: #f1f1f1;  /* Hintergrundfarbe bei Hover */
+    background-color: #f1f1f1;
 }
 
+/* Styling für aktive Zellen (z.B. aktuelles Datum) */
 .calendar td.active {
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 50%;
-    font-weight: bold;
+    background-color: #4CAF50;  /* Grüne Hintergrundfarbe */
+    color: white;                /* Weisser Text */
+    border-radius: 50%;          /* Runde Zellen */
+    font-weight: bold;           /* Fettdruck */
 }
 
+/* Styling für leere Zellen im Kalender */
 .calendar td.empty {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9;  /* Heller Hintergrund für leere Zellen */
 }
 
+/* Styling für die Caption (Titel) des Kalenders */
 .calendar caption {
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 15px;
     text-align: left;
-    color: #4CAF50;
+    color: #4CAF50;  /* Grüne Farbe für den Titel */
     margin-top: 10px;
 }
 
-/* Styling für den heutigen Tag */
+/* Styling für den heutigen Tag im Kalender */
 .calendar .today {
-    background-color: #4CAF50;
-    color: white;
-    font-weight: bold;
+    background-color: #4CAF50;  /* Grüne Hintergrundfarbe */
+    color: white;                /* Weisser Text */
+    font-weight: bold;           /* Fettdruck */
 }
 
-/* Zusätzliche Anpassungen für die mobile Ansicht */
+/* Mobile Ansicht (max. 600px) */
 @media (max-width: 600px) {
     .calendar {
-        padding: 15px;
+        padding: 15px;  /* Weniger Padding in der mobilen Ansicht */
     }
 
     .calendar th, .calendar td {
@@ -98,21 +109,22 @@ body {
     }
 
     .calendar caption {
-        font-size: 18px;
+        font-size: 18px;  /* Kleinere Schrift für die Caption auf kleinen Geräten */
     }
 }
 
-/* Allgemeine Stile */
+/* Allgemeine Stile für die Navigationsleiste */
 .navbar {
-    background-color: var(--main-color);
+    background-color: var(--main-color);  /* Setzt die Hauptfarbe für die Navbar */
     color: white;
     padding: 16px 24px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between;  /* Verteilt die Elemente mit maximalem Abstand */
     align-items: center;
     position: relative;
 }
 
+/* Styling für Links in der Navbar */
 .nav-left a {
     color: white;
     text-decoration: none;
@@ -120,10 +132,12 @@ body {
     font-weight: 500;
 }
 
+/* Hover-Effekt für Links in der Navbar */
 .nav-left a:hover {
     text-decoration: underline;
 }
 
+/* Container für die Seite */
 .container {
     width: 80%;
     max-width: 900px;
@@ -131,33 +145,38 @@ body {
     padding: 20px;
 }
 
+/* Styling für Seitentitel */
 .page-title {
     text-align: center;
     font-size: 28px;
     margin-bottom: 30px;
 }
 
+/* Grid-Layout für das Dashboard */
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Flexibles Grid */
     gap: 32px;
     padding: 0 16px;
     margin-bottom: 40px;
 }
 
+/* Styling für die Karten im Dashboard */
 .card {
     background: white;
     border-radius: 20px;
     padding: 28px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Sanfter Schatten */
     max-width: 100%;
-    animation: fadeInUp 0.5s ease both;
+    animation: fadeInUp 0.5s ease both; /* Animation für das Erscheinen der Karten */
 }
 
+/* Styling für die Überschrift der Karten */
 .card h3 {
     margin-bottom: 18px;
 }
 
+/* Styling für Formulareingaben und Buttons */
 form input,
 form button {
     width: 100%;
@@ -170,8 +189,9 @@ form button {
     box-sizing: border-box;
 }
 
+/* Styling für Buttons in Formularen */
 form button {
-    background-color: var(--main-color);
+    background-color: var(--main-color);  /* Verwendung der Hauptfarbe für Buttons */
     color: white;
     border: none;
     font-weight: bold;
@@ -179,18 +199,21 @@ form button {
     transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
+/* Hover-Effekt für Buttons */
 form button:hover {
-    background-color: var(--main-color-dark);
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--main-color-dark);  /* Dunklere Farbe bei Hover */
+    transform: scale(1.02);                     /* Leichte Vergrösserung */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Schatten-Effekt */
 }
 
+/* Styling für Listen */
 ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
+/* Styling für Listenelemente */
 li {
     background: #ffffff;
     margin-bottom: 10px;
@@ -202,44 +225,35 @@ li {
     border: 1px solid #e0e0e0;
 }
 
-li span {
-    flex-grow: 1;
-    padding-left: 10px;
-    word-break: break-word;
-}
-
-li button {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
+/* Styling für die Links in den Listen */
 a {
     color: var(--main-color);
     font-weight: 500;
 }
 
+/* Hover-Effekt für Links */
 a:hover {
     text-decoration: underline;
 }
 
+/* Flash-Nachricht-Styling */
 .flash-message {
-    background-color: #ffe0e0;
+    background-color: #ffe0e0;  /* Helles Rot für Flash-Nachrichten */
     color: #a10000;
     padding: 10px;
     border-radius: 10px;
     margin-bottom: 20px;
-    animation: slideIn 0.5s ease-out;
+    animation: slideIn 0.5s ease-out; /* Animation für das Einblenden */
 }
 
+/* Export-Karte Styling */
 .export-card {
     text-align: center;
     font-size: 16px;
     padding: 20px;
 }
 
+/* Keyframes für Animationen */
 @keyframes slideIn {
     from { opacity: 0; transform: translateX(-20px); }
     to { opacity: 1; transform: translateX(0); }
@@ -250,14 +264,15 @@ a:hover {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Styling für mobile Ansicht */
 @media (max-width: 600px) {
     .navbar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-start;  /* Navbar-Elemente in einer Spalte anordnen */
     }
 
     .grid-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr;  /* Einspaltiges Layout für kleine Bildschirme */
         padding: 0 10px;
     }
 
@@ -268,6 +283,7 @@ a:hover {
     }
 }
 
+/* Löschen-Link-Styling */
 .delete-link {
     margin-left: 12px;
     font-size: 18px;
@@ -276,10 +292,12 @@ a:hover {
     text-decoration: none;
 }
 
+/* Hover-Effekt für Löschen-Links */
 .delete-link:hover {
-    color: #ff4c4c;
+    color: #ff4c4c;  /* Rote Farbe bei Hover */
 }
 
+/* Profil-Dropdown-Menü */
 .profile-dropdown {
     position: relative;
     display: inline-block;
@@ -294,6 +312,7 @@ a:hover {
     font-size: 24px;
 }
 
+/* Dropdown-Inhalte */
 .profile-dropdown .dropdown-content {
     display: none;
     position: absolute;
@@ -304,6 +323,7 @@ a:hover {
     z-index: 1;
 }
 
+/* Styling für die Links im Dropdown */
 .profile-dropdown .dropdown-content a {
     color: #4caf50;
     padding: 8px 16px;
@@ -311,14 +331,17 @@ a:hover {
     display: block;
 }
 
+/* Hover-Effekt für Dropdown-Links */
 .profile-dropdown .dropdown-content a:hover {
     background-color: #ddd;
 }
 
+/* Anzeige des Dropdown-Menüs beim Hover */
 .profile-dropdown:hover .dropdown-content {
     display: block;
 }
 
+/* Button-Styling */
 button {
     display: inline-flex;
     align-items: center;
@@ -331,20 +354,16 @@ button {
     cursor: pointer;
 }
 
+/* Material Icons in der Navbar und Karten */
 .navbar a .material-icons {
     color: white;
 }
 
 .card .material-icons {
-    color: #4CAF50; /* Grün */
+    color: #4CAF50; /* Grüne Icons */
 }
 
-span {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 10px;
-}
-
+/* Styling für den Zurück-Button */
 .back-button {
     background-color: var(--main-color);
     color: white;
@@ -360,6 +379,7 @@ span {
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
+/* Hover-Effekt für den Zurück-Button */
 .back-button:hover {
     background-color: var(--main-color-dark);
     transform: scale(1.05);

@@ -1,10 +1,15 @@
 {% extends 'layout.html' %}
+
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<!-- Willkommenstext auf der Startseite -->
 <h1>Willkommen beim Productive Calendar</h1>
 <p>Organisiere deine Termine und Aufgaben einfach & effizient.</p>
+
+<!-- Überprüfen, ob der Benutzer nicht eingeloggt ist -->
 {% if not session.get('user_id') %}
+    <!-- Anzeige von Links für die Registrierung und das Login, wenn der Benutzer nicht eingeloggt ist -->
     <p><a href="/register">Jetzt registrieren</a> oder <a href="/login">einloggen</a>, um zu starten.</p>
 {% endif %}
 {% endblock %}

@@ -4,18 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <!-- Verlinkung zum externen Stylesheet für das Layout der Seite -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Container für das Login-Formular -->
     <div class="login-container">
         <h2>Login</h2>
+
+        <!-- Login-Formular, das POST-Anfragen an die Login-Route sendet -->
         <form action="{{ url_for('login') }}" method="POST">
+            
+            <!-- Eingabefeld für den Benutzernamen -->
             <label for="username">Benutzername:</label>
             <input type="text" id="username" name="username" required>
+            <!-- Das `required` Attribut sorgt dafür, dass der Benutzername ausgefüllt werden muss -->
 
+            <!-- Eingabefeld für das Passwort -->
             <label for="password">Passwort:</label>
             <input type="password" id="password" name="password" required>
+            <!-- Das `required` Attribut sorgt dafür, dass das Passwort ausgefüllt werden muss -->
 
+            <!-- Login-Button, um das Formular abzusenden -->
             <button type="submit">Login</button>
         </form>
     </div>

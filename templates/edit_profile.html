@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil bearbeiten</title>
+    <!-- Link zum externen Stylesheet für die Seite -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- Navigation mit Links zu Home, Dashboard und Logout -->
     <nav class="navbar">
         <a href="/">Home</a>
         <a href="/dashboard">Dashboard</a>
@@ -14,25 +16,38 @@
     </nav>
 
     <div class="container">
+        <!-- Überschrift für den Profil-Bearbeitungsbereich -->
         <h2>Profil bearbeiten</h2>
+
+        <!-- Formular für die Bearbeitung des Benutzerprofils -->
         <form action="{{ url_for('edit_profile') }}" method="POST">
+            
+            <!-- Eingabefeld für den Benutzernamen -->
             <label for="username">Benutzername:</label>
             <input type="text" id="username" name="username" value="{{ user.username }}" required>
+            <!-- Das Feld ist mit dem Benutzernamen des aktuellen Benutzers vorbelegt -->
 
+            <!-- Eingabefeld für das aktuelle Passwort -->
             <label for="current-password">Aktuelles Passwort:</label>
             <input type="password" id="current-password" name="current-password" required>
+            <!-- Der Benutzer muss sein aktuelles Passwort eingeben, um Änderungen vorzunehmen -->
 
+            <!-- Eingabefeld für das neue Passwort -->
             <label for="new-password">Neues Passwort:</label>
             <input type="password" id="new-password" name="new-password" required>
+            <!-- Der Benutzer gibt hier das neue Passwort ein -->
 
+            <!-- Eingabefeld zur Bestätigung des neuen Passworts -->
             <label for="confirm-password">Neues Passwort bestätigen:</label>
             <input type="password" id="confirm-password" name="confirm-password" required>
+            <!-- Benutzer muss das neue Passwort zur Bestätigung erneut eingeben -->
 
+            <!-- Speichern-Button für die Änderungen -->
             <button type="submit">Speichern</button>
         </form>
 
+        <!-- Button, der den Benutzer zurück zum Dashboard führt, ohne Änderungen zu speichern -->
         <a href="/dashboard"><button type="button" class="back-button">Zurück zur Hauptseite</button></a>
-    </div>
     </div>
 </body>
 </html>

@@ -5,56 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Productive Calendar{% endblock %}</title>
 
-    <!-- CSS -->
+    <!-- CSS für die allgemeine Gestaltung der Seite -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-    <!-- Google Material Icons -->
+    <!-- Google Material Icons für Symbole auf der Seite -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-     <!-- Andere Meta-Daten und Links -->
+    <!-- Font Awesome für zusätzliche Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    {% block head %}{% endblock %}
+    {% block head %}{% endblock %} <!-- Hier können spezifische Styles oder Scripts eingefügt werden -->
   </head>
   <body>
 
-<!-- Navbar -->
-<nav class="navbar">
-    <div class="nav-left">
-      <a href="/"> <span class="material-icons">home</span> Home</a> <!-- Home Icon -->
-      {% if session.get('user_id') %}
-        <a href="/dashboard"> <span class="material-icons">calendar_today</span> Dashboard</a> <!-- Dashboard Icon -->
-        <a href="/logout"> <span class="material-icons">exit_to_app</span> Logout</a> <!-- Logout Icon -->
-      {% else %}
-        <a href="/login"> <span class="material-icons">login</span> Login</a> <!-- Login Icon -->
-        <a href="/register"> <span class="material-icons">person_add</span> Register</a> <!-- Register Icon -->
-      {% endif %}
+    <!-- Navigationsleiste -->
+    <nav class="navbar">
+        <div class="nav-left">
+          <!-- Home-Link mit Icon -->
+          <a href="/"> <span class="material-icons">home</span> Home</a>
+          
+          <!-- Überprüfen, ob der Benutzer eingeloggt ist (session.get('user_id')) -->
+          {% if session.get('user_id') %}
+            <!-- Zeigt Dashboard und Logout-Optionen an, wenn der Benutzer eingeloggt ist -->
+            <a href="/dashboard"> <span class="material-icons">calendar_today</span> Dashboard</a>
+            <a href="/logout"> <span class="material-icons">exit_to_app</span> Logout</a>
+          {% else %}
+            <!-- Zeigt Login- und Registrierungs-Optionen an, wenn der Benutzer nicht eingeloggt ist -->
+            <a href="/login"> <span class="material-icons">login</span> Login</a>
+            <a href="/register"> <span class="material-icons">person_add</span> Register</a>
+          {% endif %}
+        </div>
+      
+    <!-- Profil Dropdown-Menü -->
+    <div class="profile-dropdown">
+        <button class="profile-icon">
+            <span class="material-icons">account_circle</span>
+        </button>
+        <div class="dropdown-content">
+            <!-- Links für Profilbearbeitung und Profil löschen, die angezeigt werden, wenn der Benutzer eingeloggt ist -->
+            <a href="/profile/edit">Profil bearbeiten</a>
+            <a href="/profile/delete">Profil löschen</a>
+        </div>
     </div>
-  
-<!-- Profil Dropdown -->
-<div class="profile-dropdown">
-    <button class="profile-icon">
-        <span class="material-icons">account_circle</span>
-    </button>
-    <div class="dropdown-content">
-        <a href="/profile/edit">Profil bearbeiten</a> <!-- Diese Zeile entfernen -->
-        <a href="/profile/delete">Profil löschen</a> <!-- Diese Zeile entfernen -->
-    </div>
-</div>
-  </nav>  
+    </nav>  
 
-    <!-- Page content -->
+    <!-- Inhalt der Seite -->
     <div class="container">
       {% block content %}{% endblock %}
     </div>
 
+    <!-- JavaScript zur Handhabung des Dropdown-Menüs für das Profil -->
     <script>
+      // Funktion zum Umschalten der Sichtbarkeit des Profil-Menüs
       function toggleProfileMenu() {
         var dropdown = document.getElementById("profileDropdown");
         dropdown.classList.toggle("show");
       }
 
-      // Close the dropdown menu if the user clicks outside of it
+      // Schliesse das Dropdown-Menü, wenn der Benutzer ausserhalb des Menüs klickt
       window.onclick = function(event) {
         if (!event.target.matches('.profile-icon')) {
           var dropdowns = document.getElementsByClassName("dropdown-content");

@@ -7,8 +7,8 @@ import calendar
 
 # Flask-Anwendung initialisieren
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'  # Datenbank-Verbindung
-app.config['SECRET_KEY'] = 'supersecretkey'  # Session-Schlüssel
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'  # Verbindung zur SQLite-Datenbank
+app.config['SECRET_KEY'] = 'supersecretkey'  # Session-Schlüssel für sichere Cookies und Sessions
 db = SQLAlchemy(app)
 
 # Modell für Benutzer
@@ -31,6 +31,7 @@ class Task(db.Model):
     done = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+# Startseite - Landing Page
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -41,13 +42,17 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
+        # Überprüfen, ob der Benutzername bereits existiert
         if User.query.filter_by(username=username).first():
-            flash('Benutzername existiert bereits.')
+            flash('Benutzername existiert bereits.')  # Fehlermeldung anzeigen
             return redirect(url_for('register'))
+        
+        # Neues Benutzerobjekt erstellen
         new_user = User(username=username, password=password)
         db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        db.session.commit()  # Benutzer in die Datenbank einfügen
+        return redirect(url_for('login'))  # Nach erfolgreicher Registrierung zum Login weiterleiten
     return render_template('register.html')
 
 # Loginroute
@@ -56,37 +61,46 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        
+        # Überprüfen, ob der Benutzer existiert
         user = User.query.filter_by(username=username).first()
+        
+        # Passwort überprüfen (hier könnte eine sichere Passwort-Hashing-Logik implementiert werden)
         if user and user.password == password:
-            session['user_id'] = user.id
-            return redirect(url_for('dashboard'))
-        flash('Login fehlgeschlagen.')
+            session['user_id'] = user.id  # Session speichern
+            return redirect(url_for('dashboard'))  # Zum Dashboard weiterleiten
+        flash('Login fehlgeschlagen.')  # Fehlermeldung anzeigen
     return render_template('login.html')
 
 # Logout-Route
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)
-    return redirect(url_for('index'))
+    session.pop('user_id', None)  # Benutzersession löschen
+    return redirect(url_for('index'))  # Zur Startseite weiterleiten
 
 # Profilbearbeitungsroute
 @app.route('/profile/edit', methods=['GET', 'POST'])
 def edit_profile():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Sicherstellen, dass der Benutzer eingeloggt ist
 
-    user = User.query.get_or_404(session['user_id'])
+    user = User.query.get_or_404(session['user_id'])  # Benutzer aus der Datenbank holen
 
     if request.method == 'POST':
         new_username = request.form['username']
         new_password = request.form['password']
+        
+        # Wenn ein neuer Benutzername eingegeben wurde, diesen aktualisieren
         if new_username:
             user.username = new_username
+        
+        # Wenn ein neues Passwort eingegeben wurde, dieses aktualisieren
         if new_password:
             user.password = new_password
-        db.session.commit()
-        flash('Profil erfolgreich aktualisiert.')
-        return redirect(url_for('dashboard'))
+        
+        db.session.commit()  # Änderungen speichern
+        flash('Profil erfolgreich aktualisiert.')  # Erfolgsmeldung anzeigen
+        return redirect(url_for('dashboard'))  # Zurück zum Dashboard weiterleiten
 
     return render_template('edit_profile.html', user=user)
 
@@ -94,18 +108,18 @@ def edit_profile():
 @app.route('/profile/delete', methods=['GET', 'POST'])
 def delete_profile():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Sicherstellen, dass der Benutzer eingeloggt ist
 
-    user = User.query.get_or_404(session['user_id'])
+    user = User.query.get_or_404(session['user_id'])  # Benutzerobjekt laden
 
     if request.method == 'POST':
-        Task.query.filter_by(user_id=user.id).delete()
-        Event.query.filter_by(user_id=user.id).delete()
-        db.session.delete(user)
-        db.session.commit()
-        session.pop('user_id', None)
-        flash('Dein Profil wurde gelöscht.')
-        return redirect(url_for('index'))
+        Task.query.filter_by(user_id=user.id).delete()  # Alle Aufgaben des Benutzers löschen
+        Event.query.filter_by(user_id=user.id).delete()  # Alle Ereignisse des Benutzers löschen
+        db.session.delete(user)  # Benutzer löschen
+        db.session.commit()  # Änderungen speichern
+        session.pop('user_id', None)  # Session des Benutzers löschen
+        flash('Dein Profil wurde gelöscht.')  # Erfolgsmeldung anzeigen
+        return redirect(url_for('index'))  # Zur Startseite weiterleiten
 
     return render_template('delete_profile.html', user=user)
 
@@ -113,7 +127,7 @@ def delete_profile():
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Sicherstellen, dass der Benutzer eingeloggt ist
 
     user_id = session['user_id']
 
@@ -143,7 +157,6 @@ def dashboard():
     events = Event.query.filter_by(user_id=user_id).all()
     tasks = Task.query.filter_by(user_id=user_id).all()
 
-    # Kalender und andere Daten an das Template übergeben
     return render_template('dashboard.html', events=events, tasks=tasks, now=datetime.now(), month_calendar=month_calendar)
 
 # Aufgabe als erledigt markieren
@@ -174,7 +187,7 @@ def delete_event(id):
 @app.route('/export')
 def export():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Sicherstellen, dass der Benutzer eingeloggt ist
 
     user_id = session['user_id']
     events = Event.query.filter_by(user_id=user_id).all()
