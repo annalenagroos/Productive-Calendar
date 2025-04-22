@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 import csv
 import io
 import calendar
@@ -43,16 +44,21 @@ def register():
         username = request.form['username']
         password = request.form['password']
         
-        # Überprüfen, ob der Benutzername bereits existiert
+        # Überprüfe, ob der Benutzername bereits existiert
         if User.query.filter_by(username=username).first():
-            flash('Benutzername existiert bereits.')  # Fehlermeldung anzeigen
+            flash('Benutzername existiert bereits!')
             return redirect(url_for('register'))
         
-        # Neues Benutzerobjekt erstellen
-        new_user = User(username=username, password=password)
+        # Passwort hashen, bevor es in der DB gespeichert wird
+        password_hash = generate_password_hash(password)
+        
+        # Neuen Benutzer anlegen
+        new_user = User(username=username, password=password_hash)
         db.session.add(new_user)
-        db.session.commit()  # Benutzer in die Datenbank einfügen
-        return redirect(url_for('login'))  # Nach erfolgreicher Registrierung zum Login weiterleiten
+        db.session.commit()  # Speichert den neuen Benutzer in der DB
+        flash('Registrierung erfolgreich!')
+        return redirect(url_for('login'))  # Weiterleitung zum Login
+    
     return render_template('register.html')
 
 # Loginroute
@@ -62,14 +68,16 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        # Überprüfen, ob der Benutzer existiert
+        # Benutzer aus der DB holen
         user = User.query.filter_by(username=username).first()
         
-        # Passwort überprüfen (hier könnte eine sichere Passwort-Hashing-Logik implementiert werden)
-        if user and user.password == password:
-            session['user_id'] = user.id  # Session speichern
-            return redirect(url_for('dashboard'))  # Zum Dashboard weiterleiten
-        flash('Login fehlgeschlagen.')  # Fehlermeldung anzeigen
+        # Passwort überprüfen
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id  # Benutzer-ID in der Session speichern
+            return redirect(url_for('dashboard'))  # Weiterleitung zum Dashboard
+        
+        flash('Login fehlgeschlagen. Überprüfe Benutzername und Passwort.')
+    
     return render_template('login.html')
 
 # Logout-Route

@@ -1,55 +1,9 @@
-{% extends 'layout.html' %}
-
-{% block content %}
-<!-- Überschrift für den Suchbereich -->
-<h1>Suche nach Ereignissen und Aufgaben</h1>
-
-<!-- Formular für die Suche -->
-<form method="POST" action="{{ url_for('search') }}">
-    <div style="display: flex; align-items: center; position: relative;">
-        <!-- Eingabefeld für den Suchbegriff -->
-        <input type="text" name="search_term" placeholder="Suchbegriff" value="{{ search_term or '' }}" style="padding-left: 30px;">
-        
-        <!-- Lupe-Icon als visuelle Hilfe für die Suche -->
-        <i class="fas fa-search" style="position: absolute; left: 10px; color: #888;"></i>
-        
-        <!-- Der Button wird durch das Lupe-Icon ersetzt, aber das Formular funktioniert auch ohne den Button -->
-        <button type="submit" style="display: none;"></button>
-    </div>
-</form>
-
-<!-- Überschrift für die Suchergebnisse -->
-<h2>Suchergebnisse:</h2>
-
-{% if search_term %}
-    <!-- Anzeige des Suchbegriffs -->
-    <h3>Ergebnisse für: "{{ search_term }}"</h3>
-
-    <!-- Abschnitt für Ereignisse -->
-    <h4>Ereignisse:</h4>
-    {% if events %}
-        <!-- Anzeige der Ereignisse, wenn welche gefunden wurden -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
         <ul>
-        {% for event in events %}
-            <li>{{ event.title }} - {{ event.date }}</li>
-        {% endfor %}
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
         </ul>
-    {% else %}
-        <p>Keine Ereignisse gefunden.</p>
     {% endif %}
-
-    <!-- Abschnitt für Aufgaben -->
-    <h4>Aufgaben:</h4>
-    {% if tasks %}
-        <!-- Anzeige der Aufgaben, wenn welche gefunden wurden -->
-        <ul>
-        {% for task in tasks %}
-            <li>{{ task.description }} - {% if task.done %}Erledigt{% else %}Offen{% endif %}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Aufgaben gefunden.</p>
-    {% endif %}
-{% endif %}
-
-{% endblock %}
+{% endwith %}
