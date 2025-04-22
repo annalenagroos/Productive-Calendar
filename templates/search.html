@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<h1>Suche nach Ereignissen und Aufgaben</h1>
+
+<form method="POST" action="{{ url_for('search') }}">
+    <div style="display: flex; align-items: center; position: relative;">
+        <input type="text" name="search_term" placeholder="Suchbegriff" value="{{ search_term or '' }}" style="padding-left: 30px;">
+        <!-- Lupe-Icon -->
+        <i class="fas fa-search" style="position: absolute; left: 10px; color: #888;"></i>
+        <button type="submit" style="display: none;"></button>  <!-- Der Button wird durch das Icon ersetzt -->
+    </div>
+</form>
+
+<h2>Suchergebnisse:</h2>
+
+{% if search_term %}
+    <h3>Ergebnisse für: "{{ search_term }}"</h3>
+
+    <h4>Ereignisse:</h4>
+    {% if events %}
+        <ul>
+        {% for event in events %}
+            <li>{{ event.title }} - {{ event.date }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Ereignisse gefunden.</p>
+    {% endif %}
+
+    <h4>Aufgaben:</h4>
+    {% if tasks %}
+        <ul>
+        {% for task in tasks %}
+            <li>{{ task.description }} - {% if task.done %}Erledigt{% else %}Offen{% endif %}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Keine Aufgaben gefunden.</p>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

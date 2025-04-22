@@ -5,22 +5,26 @@ import csv
 import io
 import calendar
 
+# Flask-Anwendung initialisieren
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'
-app.config['SECRET_KEY'] = 'supersecretkey'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'  # Datenbank-Verbindung
+app.config['SECRET_KEY'] = 'supersecretkey'  # Session-Schlüssel
 db = SQLAlchemy(app)
 
+# Modell für Benutzer
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
 
+# Modell für Ereignisse
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     date = db.Column(db.Date, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+# Modell für Aufgaben
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(250), nullable=False)
@@ -31,6 +35,7 @@ class Task(db.Model):
 def index():
     return render_template('index.html')
 
+# Registrierungsroute
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -45,6 +50,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
+# Loginroute
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -57,11 +63,13 @@ def login():
         flash('Login fehlgeschlagen.')
     return render_template('login.html')
 
+# Logout-Route
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('index'))
 
+# Profilbearbeitungsroute
 @app.route('/profile/edit', methods=['GET', 'POST'])
 def edit_profile():
     if 'user_id' not in session:
@@ -82,6 +90,7 @@ def edit_profile():
 
     return render_template('edit_profile.html', user=user)
 
+# Profil löschen
 @app.route('/profile/delete', methods=['GET', 'POST'])
 def delete_profile():
     if 'user_id' not in session:
@@ -100,6 +109,7 @@ def delete_profile():
 
     return render_template('delete_profile.html', user=user)
 
+# Dashboard-Routen für Aufgaben und Ereignisse
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' not in session:
@@ -136,6 +146,7 @@ def dashboard():
     # Kalender und andere Daten an das Template übergeben
     return render_template('dashboard.html', events=events, tasks=tasks, now=datetime.now(), month_calendar=month_calendar)
 
+# Aufgabe als erledigt markieren
 @app.route('/task/done/<int:id>')
 def task_done(id):
     task = Task.query.get_or_404(id)
@@ -143,6 +154,7 @@ def task_done(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
+# Aufgabe löschen
 @app.route('/task/delete/<int:id>')
 def delete_task(id):
     task = Task.query.get_or_404(id)
@@ -150,6 +162,7 @@ def delete_task(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
+# Ereignis löschen
 @app.route('/event/delete/<int:id>')
 def delete_event(id):
     event = Event.query.get_or_404(id)
@@ -157,6 +170,7 @@ def delete_event(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
+# Export von Ereignissen und Aufgaben als CSV
 @app.route('/export')
 def export():
     if 'user_id' not in session:
@@ -183,6 +197,7 @@ def export():
                      as_attachment=True,
                      download_name='kalender_export.csv')
 
+# API für Ereignisse
 @app.route('/api/events')
 def api_events():
     if 'user_id' not in session:
@@ -200,7 +215,35 @@ def api_events():
 
     return jsonify(event_list)
 
+# Suchfunktion für Ereignisse und Aufgaben
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))  # Sicherstellen, dass der Benutzer eingeloggt ist
+
+    user_id = session['user_id']
+    search_term = None
+    events = []
+    tasks = []
+
+    if request.method == 'POST':
+        search_term = request.form['search_term']  # Den Suchbegriff aus dem Formular erhalten
+        
+        # Ereignisse suchen
+        events = Event.query.filter(
+            Event.title.ilike(f'%{search_term}%'),  # 'ilike' für fallunabhängige Suche
+            Event.user_id == user_id  # Nur Ereignisse des eingeloggten Benutzers
+        ).all()
+
+        # Aufgaben suchen
+        tasks = Task.query.filter(
+            Task.description.ilike(f'%{search_term}%'),  # 'ilike' für fallunabhängige Suche
+            Task.user_id == user_id  # Nur Aufgaben des eingeloggten Benutzers
+        ).all()
+
+    return render_template('search.html', events=events, tasks=tasks, search_term=search_term)
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Diese Zeile sorgt dafür, dass alle Tabellen erstellt werden
     app.run(debug=True)
