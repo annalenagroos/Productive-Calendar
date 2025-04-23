@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}Backup wiederherstellen{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 0 auto;">
+  <h2>Backup wiederherstellen</h2>
+  <p>Hier kannst du ein gesichertes Backup (.db-Datei) wiederherstellen.</p>
+
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="backup_file" accept=".db" required>
+    <br><br>
+    <button type="submit" class="btn btn-warning">Backup hochladen</button>
+  </form>
+
+  <p style="margin-top: 20px;"><a href="{{ url_for('dashboard') }}">Zurück zum Dashboard</a></p>
+</div>
+{% endblock %}

@@ -5,6 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import csv
 import io
 import calendar
+import shutil
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'
@@ -39,7 +41,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form.get('username', '').strip()
         password = request.form['password']
 
         if User.query.filter_by(username=username).first():
@@ -58,7 +60,7 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form.get('username', '').strip()
         password = request.form['password']
 
         user = User.query.filter_by(username=username).first()
@@ -85,7 +87,7 @@ def edit_profile():
 
     if request.method == 'POST':
         current_password = request.form['current-password']
-        new_username = request.form['username']
+        username = request.form.get('username', '').strip()
         new_password = request.form['new-password']
         confirm_password = request.form['confirm-password']
 
@@ -111,21 +113,25 @@ def edit_profile():
 
     return render_template('edit_profile.html', user=user)
 
-@app.route('/profile/delete', methods=['GET', 'POST'])
+@app.route('/profile/delete', methods=['GET'])
+def confirm_delete_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('delete_profile.html')
+
+@app.route('/profile/delete/confirm', methods=['POST'])
 def delete_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
     user = User.query.get_or_404(session['user_id'])
-
-    if request.method == 'POST':
-        Task.query.filter_by(user_id=user.id).delete()
-        Event.query.filter_by(user_id=user.id).delete()
-        db.session.delete(user)
-        db.session.commit()
-        session.pop('user_id', None)
-        flash('Dein Profil wurde gelöscht.')
-        return redirect(url_for('index'))
+    Task.query.filter_by(user_id=user.id).delete()
+    Event.query.filter_by(user_id=user.id).delete()
+    db.session.delete(user)
+    db.session.commit()
+    session.pop('user_id', None)
+    flash('Dein Profil wurde gelöscht.')
+    return redirect(url_for('index'))
 
     return render_template('delete_profile.html', user=user)
 
@@ -186,12 +192,17 @@ def dashboard():
     if request.method == 'POST':
         if 'event_title' in request.form:
             title = request.form['event_title']
+        try:
             date = datetime.strptime(request.form['event_date'], '%Y-%m-%d')
-            repeat = request.form.get('event_repeat', 'none')
-            new_event = Event(title=title, date=date, user_id=user_id, repeat=repeat)
-            db.session.add(new_event)
-            db.session.commit()
-            return redirect(url_for('dashboard'))
+        except ValueError:
+            flash('Ungültiges Datum.')
+        return redirect(url_for('dashboard'))
+    
+        repeat = request.form.get('event_repeat', 'none')
+        new_event = Event(title=title, date=date, user_id=user_id, repeat=repeat)
+        db.session.add(new_event)
+        db.session.commit()
+        return redirect(url_for('dashboard'))
 
         if 'task_description' in request.form:
             description = request.form['task_description']
@@ -354,8 +365,58 @@ def search():
     return render_template('search.html', events=events, tasks=tasks,
                            search_term=search_term, event_date=event_date, filter_type=filter_type)
 
+@app.route('/backup')
+def create_backup():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    db_path = 'instance/dashboard.db'
+    backup_path = f'backup/backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db'
+
+    os.makedirs('backup', exist_ok=True)
+    shutil.copy2(db_path, backup_path)
+
+    flash('Backup wurde erfolgreich erstellt.')
+    return redirect(url_for('dashboard'))
+
+@app.route('/download-latest-backup')
+def download_latest_backup():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    backup_folder = 'backup'
+    backups = sorted(
+        [f for f in os.listdir(backup_folder) if f.endswith('.db')],
+        reverse=True
+    )
+
+    if not backups:
+        flash('Kein Backup verfügbar.')
+        return redirect(url_for('dashboard'))
+
+    latest_file = backups[0]
+    path = os.path.join(backup_folder, latest_file)
+    return send_file(path, as_attachment=True)
+
+@app.route('/restore', methods=['GET', 'POST'])
+def restore_backup():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        file = request.files.get('backup_file')
+        if file and file.filename.endswith('.db'):
+            save_path = os.path.join('instance', 'dashboard.db')
+            file.save(save_path)
+            flash('Backup erfolgreich wiederhergestellt. Starte die App neu, um Änderungen zu sehen.')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Ungültige Datei. Nur .db-Dateien sind erlaubt.')
+
+    return render_template('restore.html')
+
 # ------------------- App starten -------------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=False)
