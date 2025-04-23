@@ -20,12 +20,13 @@
         <a href="/"><span class="material-icons">home</span> Home</a>
         {% if session.get('user_id') %}
           <a href="/dashboard"><span class="material-icons">calendar_today</span> Dashboard</a>
+
           <!-- Suchfeld zwischen Dashboard und Logout -->
           <form class="search-nav-form" action="{{ url_for('search') }}" method="POST">
-            <input type="text" name="search_term" placeholder="Suchen..." required>
             <button type="submit" title="Suchen"><span class="material-icons">search</span></button>
+            <input type="text" name="search_term" placeholder="Suchen..." required>
           </form>
-          <a href="/logout"><span class="material-icons">exit_to_app</span> Logout</a>
+
         {% else %}
           <a href="/login"><span class="material-icons">login</span> Login</a>
           <a href="/register"><span class="material-icons">person_add</span> Register</a>
@@ -41,6 +42,7 @@
         <div id="profileDropdown" class="dropdown-content">
           <a href="/profile/edit">Profil bearbeiten</a>
           <a href="/profile/delete">Profil löschen</a>
+          <a href="{{ url_for('logout') }}">Logout</a>
         </div>
       </div>
       {% endif %}

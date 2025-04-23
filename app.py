@@ -84,13 +84,26 @@ def edit_profile():
     user = User.query.get_or_404(session['user_id'])
 
     if request.method == 'POST':
+        current_password = request.form['current-password']
         new_username = request.form['username']
-        new_password = request.form['password']
+        new_password = request.form['new-password']
+        confirm_password = request.form['confirm-password']
 
+        # Aktuelles Passwort prüfen
+        if not check_password_hash(user.password, current_password):
+            flash('Das aktuelle Passwort ist falsch.')
+            return redirect(url_for('edit_profile'))
+
+        # Benutzernamen aktualisieren
         if new_username:
             user.username = new_username
+
+        # Neues Passwort prüfen und aktualisieren
         if new_password:
-            user.password = new_password
+            if new_password != confirm_password:
+                flash('Die neuen Passwörter stimmen nicht überein.')
+                return redirect(url_for('edit_profile'))
+            user.password = generate_password_hash(new_password)
 
         db.session.commit()
         flash('Profil erfolgreich aktualisiert.')

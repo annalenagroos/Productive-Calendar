@@ -436,6 +436,7 @@ button {
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-left: -10px;
   }
   
   .search-nav-form input[type="text"] {

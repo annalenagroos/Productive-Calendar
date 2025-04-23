@@ -55,16 +55,9 @@
             <ul>
                 {% for event in events %}
                 <li>
-                    <span>
-                        {{ event.title }} am {{ event.date }}
-                        {% if event.repeat != 'none' %}
-                          <span class="material-icons" style="font-size: 16px; vertical-align: middle;" title="Wiederkehrend">autorenew</span>
-                        {% endif %}
-                      </span>
-                      {% if event.id %}
-                      <a href="/event/edit/{{ event.id }}" class="edit-link">✏️</a>
-                      <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a>
-                      {% endif %}
+                    <span>{{ event.title }} am {{ event.date }}</span>
+                    <a href="/event/edit/{{ event.id }}" class="edit-link">✏️</a>
+                    <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a>
                 </li>
                 {% endfor %}
             </ul>
@@ -80,7 +73,6 @@
             <ul>
                 {% for task in tasks %}
                     <li>
-                        {% if task.id %}
                         <form action="/task/done/{{ task.id }}" method="GET" style="display:inline;">
                             <button type="submit" style="border: none; background: none; cursor: pointer;">
                                 <span class="material-icons">
@@ -88,17 +80,13 @@
                                 </span>
                             </button>
                         </form>
-                        {% endif %}
                         <span>
                             {{ task.description }}
-                            {% if task.due_date %} ({{ task.due_date }}){% endif %}
                             {% if task.repeat != 'none' %}
                               <span class="material-icons" style="font-size: 16px; vertical-align: middle;" title="Wiederkehrend">autorenew</span>
                             {% endif %}
-                        </span>
-                        {% if task.id %}
+                          </span>                          
                         <a href="/task/delete/{{ task.id }}" class="delete-link">🗑️</a>
-                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

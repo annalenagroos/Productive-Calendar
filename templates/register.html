@@ -1,21 +1,20 @@
 {% extends "layout.html" %}
 
-{% block title %}Registrierung{% endblock %}
+{% block title %}Registrieren{% endblock %}
 
 {% block content %}
-    <h1 class="page-title">Registrierung</h1>
+<div class="container">
+    <h2 style="text-align:center;">Registrierung</h2>
 
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="flash-message">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
+                {{ messages[0] }}
             </div>
         {% endif %}
     {% endwith %}
 
-    <form method="POST">
+    <form method="POST" style="max-width: 400px; margin: 0 auto;">
         <label for="username">Benutzername:</label>
         <input type="text" id="username" name="username" required>
 
@@ -24,4 +23,9 @@
 
         <button type="submit">Registrieren</button>
     </form>
+
+    <p style="text-align:center; margin-top: 16px;">
+        Bereits registriert? <a href="{{ url_for('login') }}">Zum Login</a>
+    </p>
+</div>
 {% endblock %}
