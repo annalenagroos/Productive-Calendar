@@ -5,71 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Productive Calendar{% endblock %}</title>
 
-    <!-- CSS für die allgemeine Gestaltung der Seite -->
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-    <!-- Google Material Icons für Symbole auf der Seite -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-    <!-- Font Awesome für zusätzliche Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    {% block head %}{% endblock %} <!-- Hier können spezifische Styles oder Scripts eingefügt werden -->
+    {% block head %}{% endblock %}
   </head>
   <body>
 
     <!-- Navigationsleiste -->
     <nav class="navbar">
-        <div class="nav-left">
-          <!-- Home-Link mit Icon -->
-          <a href="/"> <span class="material-icons">home</span> Home</a>
-          
-          <!-- Überprüfen, ob der Benutzer eingeloggt ist (session.get('user_id')) -->
-          {% if session.get('user_id') %}
-            <!-- Zeigt Dashboard und Logout-Optionen an, wenn der Benutzer eingeloggt ist -->
-            <a href="/dashboard"> <span class="material-icons">calendar_today</span> Dashboard</a>
-            <a href="/logout"> <span class="material-icons">exit_to_app</span> Logout</a>
-          {% else %}
-            <!-- Zeigt Login- und Registrierungs-Optionen an, wenn der Benutzer nicht eingeloggt ist -->
-            <a href="/login"> <span class="material-icons">login</span> Login</a>
-            <a href="/register"> <span class="material-icons">person_add</span> Register</a>
-          {% endif %}
-        </div>
-      
-    <!-- Profil Dropdown-Menü -->
-    <div class="profile-dropdown">
-        <button class="profile-icon">
-            <span class="material-icons">account_circle</span>
-        </button>
-        <div class="dropdown-content">
-            <!-- Links für Profilbearbeitung und Profil löschen, die angezeigt werden, wenn der Benutzer eingeloggt ist -->
-            <a href="/profile/edit">Profil bearbeiten</a>
-            <a href="/profile/delete">Profil löschen</a>
-        </div>
-    </div>
-    </nav>  
+      <div class="nav-left">
+        <a href="/"><span class="material-icons">home</span> Home</a>
+        {% if session.get('user_id') %}
+          <a href="/dashboard"><span class="material-icons">calendar_today</span> Dashboard</a>
+          <!-- Suchfeld zwischen Dashboard und Logout -->
+          <form class="search-nav-form" action="{{ url_for('search') }}" method="POST">
+            <input type="text" name="search_term" placeholder="Suchen..." required>
+            <button type="submit" title="Suchen"><span class="material-icons">search</span></button>
+          </form>
+          <a href="/logout"><span class="material-icons">exit_to_app</span> Logout</a>
+        {% else %}
+          <a href="/login"><span class="material-icons">login</span> Login</a>
+          <a href="/register"><span class="material-icons">person_add</span> Register</a>
+        {% endif %}
+      </div>
 
-    <!-- Inhalt der Seite -->
+      {% if session.get('user_id') %}
+      <!-- Profil Dropdown -->
+      <div class="profile-dropdown">
+        <button class="profile-icon" onclick="toggleProfileMenu()">
+          <span class="material-icons">account_circle</span>
+        </button>
+        <div id="profileDropdown" class="dropdown-content">
+          <a href="/profile/edit">Profil bearbeiten</a>
+          <a href="/profile/delete">Profil löschen</a>
+        </div>
+      </div>
+      {% endif %}
+    </nav>
+
+    <!-- Hauptinhalt -->
     <div class="container">
       {% block content %}{% endblock %}
     </div>
 
-    <!-- JavaScript zur Handhabung des Dropdown-Menüs für das Profil -->
+    <!-- Dropdown-Logik -->
     <script>
-      // Funktion zum Umschalten der Sichtbarkeit des Profil-Menüs
       function toggleProfileMenu() {
-        var dropdown = document.getElementById("profileDropdown");
+        const dropdown = document.getElementById("profileDropdown");
         dropdown.classList.toggle("show");
       }
 
-      // Schliesse das Dropdown-Menü, wenn der Benutzer ausserhalb des Menüs klickt
       window.onclick = function(event) {
-        if (!event.target.matches('.profile-icon')) {
-          var dropdowns = document.getElementsByClassName("dropdown-content");
-          for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-              openDropdown.classList.remove('show');
+        if (!event.target.closest('.profile-icon')) {
+          const dropdowns = document.getElementsByClassName("dropdown-content");
+          for (let i = 0; i < dropdowns.length; i++) {
+            if (dropdowns[i].classList.contains('show')) {
+              dropdowns[i].classList.remove('show');
             }
           }
         }

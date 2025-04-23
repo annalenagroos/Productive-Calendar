@@ -384,3 +384,79 @@ button {
     background-color: var(--main-color-dark);
     transform: scale(1.05);
 }
+
+/* ========== SUCHFELD IN DER NAVBAR ========== */
+/* ... bereits bestehende Regeln bleiben erhalten ... */
+
+/* ========== NAVBAR ICONS & TEXTE EINHEITLICH ========== */
+
+/* NAVBAR NEU STYLEN: Einheitliche Höhe, Ausrichtung, Stil */
+
+.navbar {
+    background-color: var(--main-color);
+    color: white;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  
+  /* Gemeinsames Layout für alle Navbar-Links */
+  .nav-left a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  /* Einheitliches Icon-Design */
+  .nav-left .material-icons {
+    font-size: 20px;
+    color: white;
+    vertical-align: middle;
+  }
+  
+  /* Hover für Links */
+  .nav-left a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Kompaktes Suchformular */
+  .search-nav-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .search-nav-form input[type="text"] {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    height: 24px;
+    width: 140px;
+  }
+  
+  .search-nav-form button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s ease;
+  }
+  
+  .search-nav-form button:hover {
+    color: #eeeeee;
+  }  

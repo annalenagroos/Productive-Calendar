@@ -1,43 +1,63 @@
 {% extends 'layout.html' %}
 
+{% block title %}Suche{% endblock %}
+
 {% block content %}
-<h1>Suche nach Ereignissen und Aufgaben</h1>
+<div class="card">
+  <h2 class="page-title"><span class="material-icons">search</span> Suche nach Ereignissen und Aufgaben</h2>
 
-<form method="POST" action="{{ url_for('search') }}">
-    <div style="display: flex; align-items: center; position: relative;">
-        <input type="text" name="search_term" placeholder="Suchbegriff" value="{{ search_term or '' }}" style="padding-left: 30px;">
-        <!-- Lupe-Icon -->
-        <i class="fas fa-search" style="position: absolute; left: 10px; color: #888;"></i>
-        <button type="submit" style="display: none;"></button>  <!-- Der Button wird durch das Icon ersetzt -->
-    </div>
-</form>
+  <form method="POST" class="search-form">
+    <input type="text" name="search_term" placeholder="Suchbegriff eingeben" value="{{ search_term or '' }}">
 
-<h2>Suchergebnisse:</h2>
+    <select name="filter_type">
+      <option value="" {% if not filter_type %}selected{% endif %}>Alle</option>
+      <option value="event" {% if filter_type == 'event' %}selected{% endif %}>Nur Termine</option>
+      <option value="task" {% if filter_type == 'task' %}selected{% endif %}>Nur Aufgaben</option>
+    </select>
 
-{% if search_term %}
-    <h3>Ergebnisse für: "{{ search_term }}"</h3>
+    <input type="date" name="event_date" value="{{ event_date or '' }}">
+    <button type="submit" class="btn-search"><span class="material-icons">search</span> Suchen</button>
+  </form>
+</div>
 
-    <h4>Ereignisse:</h4>
+{% if search_term or event_date or filter_type %}
+  <div class="card">
+    <h3>Suchergebnisse{% if search_term %} für „<em>{{ search_term }}</em>“{% endif %}</h3>
+
     {% if events %}
-        <ul>
+      <h4><span class="material-icons">event</span> Termine</h4>
+      <ul class="item-list">
         {% for event in events %}
-            <li>{{ event.title }} - {{ event.date }}</li>
+          <li>
+            <span class="item-label">{{ event.title }} am {{ event.date }}</span>
+          </li>
         {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Ereignisse gefunden.</p>
+      </ul>
+    {% elif filter_type != 'task' %}
+      <p>Keine passenden Termine gefunden.</p>
     {% endif %}
 
-    <h4>Aufgaben:</h4>
     {% if tasks %}
-        <ul>
+      <h4><span class="material-icons">checklist</span> Aufgaben</h4>
+      <ul class="item-list">
         {% for task in tasks %}
-            <li>{{ task.description }} - {% if task.done %}Erledigt{% else %}Offen{% endif %}</li>
+          <li>
+            <span class="item-label">
+              {{ task.description }} – 
+              {% if task.done %}
+                <span class="status done">Erledigt</span>
+              {% else %}
+                <span class="status open">Offen</span>
+              {% endif %}
+            </span>
+          </li>
         {% endfor %}
-        </ul>
-    {% else %}
-        <p>Keine Aufgaben gefunden.</p>
+      </ul>
+    {% elif filter_type != 'event' %}
+      <p>Keine passenden Aufgaben gefunden.</p>
     {% endif %}
+  </div>
+{% else %}
+  <p class="info-msg">Bitte gib einen Suchbegriff oder Filter ein.</p>
 {% endif %}
-
 {% endblock %}
