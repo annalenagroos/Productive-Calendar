@@ -1,29 +1,51 @@
+{# ===================== Template-Vererbung ===================== #}
+{# Diese Seite erweitert das Layout-Template, das die Grundstruktur (z. B. <html>, <head>, <body>) enthält #}
 {% extends "layout.html" %}
 
+{# ===================== Seitentitel im Browser-Tab ===================== #}
 {% block title %}Login{% endblock %}
 
+{# ===================== Hauptinhalt der Seite ===================== #}
 {% block content %}
 <div class="container">
+    <!-- Überschrift zentriert -->
     <h2 style="text-align:center;">Login</h2>
 
+    {# ===================== Flash-Nachrichten anzeigen ===================== #}
+    {# Wird z. B. genutzt bei fehlerhaftem Login oder Erfolgsmeldungen #}
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="flash-message">
-                {{ messages[0] }}
+                {{ messages[0] }}  {# Zeigt die erste Nachricht an (z. B. "Login fehlgeschlagen") #}
             </div>
         {% endif %}
     {% endwith %}
 
+    {# ===================== Login-Formular ===================== #}
     <form method="POST" style="max-width: 400px; margin: 0 auto;">
+        <!-- Benutzername -->
         <label for="username">Benutzername:</label>
-        <input type="text" id="username" name="username" required>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            required
+        >
 
+        <!-- Passwort -->
         <label for="password">Passwort:</label>
-        <input type="password" id="password" name="password" required>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            required
+        >
 
+        <!-- Absende-Button -->
         <button type="submit">Login</button>
     </form>
 
+    {# ===================== Link zur Registrierung ===================== #}
     <p style="text-align:center; margin-top: 16px;">
         Noch kein Konto? <a href="{{ url_for('register') }}">Jetzt registrieren</a>
     </p>

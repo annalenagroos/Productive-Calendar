@@ -1,29 +1,62 @@
+{# ===================== Basislayout verwenden ===================== #}
 {% extends 'layout.html' %}
 
+{# ===================== Seitentitel im Browser ===================== #}
 {% block title %}Suche{% endblock %}
 
+{# ===================== Hauptinhalt der Seite ===================== #}
 {% block content %}
+
+<!-- Suchformular im Dashboard-Stil -->
 <div class="card">
-  <h2 class="page-title"><span class="material-icons">search</span> Suche nach Ereignissen und Aufgaben</h2>
+  <h2 class="page-title">
+    <span class="material-icons">search</span>
+    Suche nach Ereignissen und Aufgaben
+  </h2>
 
+  <!-- ===================== Formular für die Suche ===================== -->
   <form method="POST" class="search-form">
-    <input type="text" name="search_term" placeholder="Suchbegriff eingeben" value="{{ search_term or '' }}">
+    <!-- Texteingabe für den Suchbegriff -->
+    <input
+      type="text"
+      name="search_term"
+      placeholder="Suchbegriff eingeben"
+      value="{{ search_term or '' }}"
+    >
 
+    <!-- Auswahl für Filtertyp (alle, nur Termine, nur Aufgaben) -->
     <select name="filter_type">
       <option value="" {% if not filter_type %}selected{% endif %}>Alle</option>
       <option value="event" {% if filter_type == 'event' %}selected{% endif %}>Nur Termine</option>
       <option value="task" {% if filter_type == 'task' %}selected{% endif %}>Nur Aufgaben</option>
     </select>
 
-    <input type="date" name="event_date" value="{{ event_date or '' }}">
-    <button type="submit" class="btn-search"><span class="material-icons">search</span> Suchen</button>
+    <!-- Optionales Datum zur Eingrenzung -->
+    <input
+      type="date"
+      name="event_date"
+      value="{{ event_date or '' }}"
+    >
+
+    <!-- Such-Button mit Icon -->
+    <button type="submit" class="btn-search">
+      <span class="material-icons">search</span> Suchen
+    </button>
   </form>
 </div>
 
+<!-- ===================== Ergebnisse anzeigen ===================== -->
 {% if search_term or event_date or filter_type %}
   <div class="card">
-    <h3>Suchergebnisse{% if search_term %} für „<em>{{ search_term }}</em>“{% endif %}</h3>
+    <!-- Dynamische Überschrift je nach Suchbegriff -->
+    <h3>
+      Suchergebnisse
+      {% if search_term %}
+        für „<em>{{ search_term }}</em>“
+      {% endif %}
+    </h3>
 
+    <!-- Gefundene Termine -->
     {% if events %}
       <h4><span class="material-icons">event</span> Termine</h4>
       <ul class="item-list">
@@ -34,9 +67,11 @@
         {% endfor %}
       </ul>
     {% elif filter_type != 'task' %}
+      <!-- Nur zeigen, wenn nicht ausschliesslich nach Aufgaben gesucht wurde -->
       <p>Keine passenden Termine gefunden.</p>
     {% endif %}
 
+    <!-- Gefundene Aufgaben -->
     {% if tasks %}
       <h4><span class="material-icons">checklist</span> Aufgaben</h4>
       <ul class="item-list">
@@ -54,10 +89,12 @@
         {% endfor %}
       </ul>
     {% elif filter_type != 'event' %}
+      <!-- Nur zeigen, wenn nicht ausschliesslich nach Terminen gesucht wurde -->
       <p>Keine passenden Aufgaben gefunden.</p>
     {% endif %}
   </div>
 {% else %}
+  <!-- Nachricht, wenn keine Filter gesetzt wurden -->
   <p class="info-msg">Bitte gib einen Suchbegriff oder Filter ein.</p>
 {% endif %}
 {% endblock %}

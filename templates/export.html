@@ -1,0 +1,52 @@
+{# ===================== Template-Vererbung ===================== #}
+{# Diese Seite erweitert das Basislayout 'layout.html' #}
+{% extends 'layout.html' %}
+
+{# ===================== Titel der Seite (für den Browser-Tab) ===================== #}
+{% block title %}Gefilterter CSV-Export{% endblock %}
+
+{# ===================== Hauptinhalt der Seite ===================== #}
+{% block content %}
+
+<!-- Exportformular in einer Karte -->
+<div class="card">
+    <!-- Überschrift mit Icon -->
+    <h3>📤 Gefilterter CSV-Export</h3>
+
+    <!-- Formular zur Auswahl des Zeitraums und Typs für den Export -->
+    <form method="POST" action="{{ url_for('export_filtered') }}">
+        <!-- Von-Datum -->
+        <label for="from_date">Von:</label>
+        <input
+            type="date"
+            name="from_date"
+            id="from_date"
+        >
+
+        <!-- Bis-Datum -->
+        <label for="to_date">Bis:</label>
+        <input
+            type="date"
+            name="to_date"
+            id="to_date"
+        >
+
+        <!-- Filtertyp (alle / nur Termine / nur Aufgaben) -->
+        <label for="filter_type">Typ:</label>
+        <select name="filter_type" id="filter_type">
+            <option value="all">Alle</option>
+            <option value="event">Nur Termine</option>
+            <option value="task">Nur Aufgaben</option>
+        </select>
+
+        <!-- Absende-Button -->
+        <button type="submit">Exportieren</button>
+    </form>
+
+    <!-- Zurück zur Hauptseite (Dashboard) -->
+    <a href="/dashboard">
+        <button type="button" class="back-button">Zurück zur Hauptseite</button>
+    </a>
+</div>
+
+{% endblock %}

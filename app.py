@@ -5,8 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import csv
 import io
 import calendar
-import shutil
-import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'
@@ -24,14 +22,13 @@ class Event(db.Model):
     title = db.Column(db.String(150), nullable=False)
     date = db.Column(db.Date, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    repeat = db.Column(db.String(20), default='none')
+    repeat = db.Column(db.String(20), default='none')  # Optionen: none, daily, weekly, monthly
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(250), nullable=False)
     done = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    repeat = db.Column(db.String(20), default='none')
 
 # ------------------- Auth & Benutzer -------------------
 @app.route('/')
@@ -41,7 +38,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form['username']
         password = request.form['password']
 
         if User.query.filter_by(username=username).first():
@@ -60,7 +57,7 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form['username']
         password = request.form['password']
 
         user = User.query.filter_by(username=username).first()
@@ -86,26 +83,13 @@ def edit_profile():
     user = User.query.get_or_404(session['user_id'])
 
     if request.method == 'POST':
-        current_password = request.form['current-password']
-        username = request.form.get('username', '').strip()
-        new_password = request.form['new-password']
-        confirm_password = request.form['confirm-password']
+        new_username = request.form['username']
+        new_password = request.form['password']
 
-        # Aktuelles Passwort prüfen
-        if not check_password_hash(user.password, current_password):
-            flash('Das aktuelle Passwort ist falsch.')
-            return redirect(url_for('edit_profile'))
-
-        # Benutzernamen aktualisieren
         if new_username:
             user.username = new_username
-
-        # Neues Passwort prüfen und aktualisieren
         if new_password:
-            if new_password != confirm_password:
-                flash('Die neuen Passwörter stimmen nicht überein.')
-                return redirect(url_for('edit_profile'))
-            user.password = generate_password_hash(new_password)
+            user.password = new_password
 
         db.session.commit()
         flash('Profil erfolgreich aktualisiert.')
@@ -113,25 +97,40 @@ def edit_profile():
 
     return render_template('edit_profile.html', user=user)
 
-@app.route('/profile/delete', methods=['GET'])
-def confirm_delete_profile():
+@app.route('/event/edit/<int:id>', methods=['GET', 'POST'])
+def edit_event(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('delete_profile.html')
 
-@app.route('/profile/delete/confirm', methods=['POST'])
+    event = Event.query.filter_by(id=id, user_id=session['user_id']).first()
+    if not event:
+        return "Event not found", 404
+
+    if request.method == 'POST':
+        event.title = request.form['title']
+        event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
+        db.session.commit()
+        flash("Termin aktualisiert!")
+        return redirect(url_for('dashboard'))
+
+    return render_template('edit_event.html', event=event)
+
+
+@app.route('/profile/delete', methods=['GET', 'POST'])
 def delete_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
     user = User.query.get_or_404(session['user_id'])
-    Task.query.filter_by(user_id=user.id).delete()
-    Event.query.filter_by(user_id=user.id).delete()
-    db.session.delete(user)
-    db.session.commit()
-    session.pop('user_id', None)
-    flash('Dein Profil wurde gelöscht.')
-    return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        Task.query.filter_by(user_id=user.id).delete()
+        Event.query.filter_by(user_id=user.id).delete()
+        db.session.delete(user)
+        db.session.commit()
+        session.pop('user_id', None)
+        flash('Dein Profil wurde gelöscht.')
+        return redirect(url_for('index'))
 
     return render_template('delete_profile.html', user=user)
 
@@ -159,28 +158,6 @@ def expand_recurring(events):
                 expanded.append(Event(title=event.title + " (Wdh)", date=new_date, user_id=event.user_id))
     return expanded
 
-def expand_tasks(tasks):
-    expanded = []
-    today = datetime.today().date()
-    for task in tasks:
-        expanded.append(task)
-        for i in range(1, 5):
-            if task.repeat == 'daily':
-                due_date = today + timedelta(days=i)
-            elif task.repeat == 'weekly':
-                due_date = today + timedelta(weeks=i)
-            else:
-                continue
-
-            clone = Task(
-                description=f"{task.description} (Wdh)",
-                done=False,
-                user_id=task.user_id,
-                repeat='none'  # geklonte Tasks sind einmalig sichtbar
-            )
-            expanded.append(clone)
-    return expanded
-
 # ------------------- Dashboard -------------------
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
@@ -192,22 +169,16 @@ def dashboard():
     if request.method == 'POST':
         if 'event_title' in request.form:
             title = request.form['event_title']
-        try:
             date = datetime.strptime(request.form['event_date'], '%Y-%m-%d')
-        except ValueError:
-            flash('Ungültiges Datum.')
-        return redirect(url_for('dashboard'))
-    
-        repeat = request.form.get('event_repeat', 'none')
-        new_event = Event(title=title, date=date, user_id=user_id, repeat=repeat)
-        db.session.add(new_event)
-        db.session.commit()
-        return redirect(url_for('dashboard'))
+            repeat = request.form.get('event_repeat', 'none')
+            new_event = Event(title=title, date=date, user_id=user_id, repeat=repeat)
+            db.session.add(new_event)
+            db.session.commit()
+            return redirect(url_for('dashboard'))
 
         if 'task_description' in request.form:
             description = request.form['task_description']
-            repeat = request.form.get('task_repeat', 'none')
-            new_task = Task(description=description, user_id=user_id, repeat=repeat)
+            new_task = Task(description=description, user_id=user_id)
             db.session.add(new_task)
             db.session.commit()
             return redirect(url_for('dashboard'))
@@ -219,10 +190,23 @@ def dashboard():
 
     events_raw = Event.query.filter_by(user_id=user_id).all()
     events = expand_recurring(events_raw)
-    tasks_raw = Task.query.filter_by(user_id=user_id).all()
-    tasks = expand_tasks(tasks_raw)
+    tasks = Task.query.filter_by(user_id=user_id).all()
 
-    return render_template('dashboard.html', events=events, tasks=tasks, now=datetime.now(), month_calendar=month_calendar)
+    # 📊 Aufgabenstatistik berechnen
+    total_tasks = len(tasks)
+    completed_tasks = len([t for t in tasks if t.done])
+    completion_rate = round((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+
+    return render_template(
+        'dashboard.html',
+        events=events,
+        tasks=tasks,
+        now=datetime.now(),
+        month_calendar=month_calendar,
+        total_tasks=total_tasks,
+        completed_tasks=completed_tasks,
+        completion_rate=completion_rate
+    )
 
 # ------------------- Aufgabenaktionen -------------------
 @app.route('/task/done/<int:id>')
@@ -230,32 +214,6 @@ def task_done(id):
     task = Task.query.get_or_404(id)
     task.done = not task.done
     db.session.commit()
-
-    # Falls erledigt und Wiederholung aktiv: neue Aufgabe erstellen
-    if task.done and task.repeat != 'none':
-        next_date = None
-        if task.repeat == 'daily':
-            next_date = datetime.today() + timedelta(days=1)
-        elif task.repeat == 'weekly':
-            next_date = datetime.today() + timedelta(weeks=1)
-
-    if next_date:
-        existing = Task.query.filter_by(
-        description=task.description,
-        user_id=task.user_id,
-        done=False
-         ).first()
-    
-    if not existing:
-        new_task = Task(
-            description=task.description,
-            done=False,
-            user_id=task.user_id,
-            repeat=task.repeat
-        )
-        db.session.add(new_task)
-        db.session.commit()
-
     return redirect(url_for('dashboard'))
 
 @app.route('/task/delete/<int:id>')
@@ -265,30 +223,13 @@ def delete_task(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-# ------------------- Ereignisse -------------------
+# ------------------- Ereignisse löschen -------------------
 @app.route('/event/delete/<int:id>')
 def delete_event(id):
     event = Event.query.get_or_404(id)
     db.session.delete(event)
     db.session.commit()
     return redirect(url_for('dashboard'))
-
-@app.route('/event/edit/<int:id>', methods=['GET', 'POST'])
-def edit_event(id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    event = Event.query.get_or_404(id)
-
-    if request.method == 'POST':
-        event.title = request.form['event_title']
-        event.date = datetime.strptime(request.form['event_date'], '%Y-%m-%d')
-        event.repeat = request.form.get('event_repeat', 'none')
-        db.session.commit()
-        flash('Termin wurde aktualisiert.')
-        return redirect(url_for('dashboard'))
-
-    return render_template('edit_event.html', event=event)
 
 # ------------------- Export CSV -------------------
 @app.route('/export')
@@ -301,7 +242,7 @@ def export():
     tasks = Task.query.filter_by(user_id=user_id).all()
 
     output = io.StringIO()
-    writer = csv.writer(output)
+    writer = csv.writer(output, delimiter=';')
     writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
 
     for event in events:
@@ -365,58 +306,61 @@ def search():
     return render_template('search.html', events=events, tasks=tasks,
                            search_term=search_term, event_date=event_date, filter_type=filter_type)
 
-@app.route('/backup')
-def create_backup():
+
+# ------------------- Export CSV -------------------
+@app.route('/export-filter', methods=['GET', 'POST'])
+def export_filtered():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    db_path = 'instance/dashboard.db'
-    backup_path = f'backup/backup_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.db'
+    user_id = session['user_id']
 
-    os.makedirs('backup', exist_ok=True)
-    shutil.copy2(db_path, backup_path)
+    if request.method == 'GET':
+        return render_template('export.html')
 
-    flash('Backup wurde erfolgreich erstellt.')
-    return redirect(url_for('dashboard'))
+    # POST – Filter auslesen
+    from_date = request.form.get('from_date')
+    to_date = request.form.get('to_date')
+    filter_type = request.form.get('filter_type')
 
-@app.route('/download-latest-backup')
-def download_latest_backup():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    events = []
+    tasks = []
 
-    backup_folder = 'backup'
-    backups = sorted(
-        [f for f in os.listdir(backup_folder) if f.endswith('.db')],
-        reverse=True
-    )
+    if filter_type in ['all', 'event']:
+        query = Event.query.filter_by(user_id=user_id)
+        if from_date:
+            query = query.filter(Event.date >= from_date)
+        if to_date:
+            query = query.filter(Event.date <= to_date)
+        events = query.all()
 
-    if not backups:
-        flash('Kein Backup verfügbar.')
-        return redirect(url_for('dashboard'))
+    if filter_type in ['all', 'task']:
+        tasks = Task.query.filter_by(user_id=user_id).all()
 
-    latest_file = backups[0]
-    path = os.path.join(backup_folder, latest_file)
-    return send_file(path, as_attachment=True)
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')  # ← CSV korrekt getrennt
+    writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
 
-@app.route('/restore', methods=['GET', 'POST'])
-def restore_backup():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    for event in events:
+        writer.writerow(['Termin', event.title, event.date])
+    for task in tasks:
+        writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
 
-    if request.method == 'POST':
-        file = request.files.get('backup_file')
-        if file and file.filename.endswith('.db'):
-            save_path = os.path.join('instance', 'dashboard.db')
-            file.save(save_path)
-            flash('Backup erfolgreich wiederhergestellt. Starte die App neu, um Änderungen zu sehen.')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Ungültige Datei. Nur .db-Dateien sind erlaubt.')
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode()),
+                     mimetype='text/csv',
+                     as_attachment=True,
+                     download_name='gefilterter_export.csv')
 
-    return render_template('restore.html')
+# ------------------- Fehlerbehandlung für 404 -------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 # ------------------- App starten -------------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=False)
+    app.run()
+
+

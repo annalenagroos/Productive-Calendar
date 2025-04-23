@@ -1,76 +1,81 @@
 <!DOCTYPE html>
-<html lang="de">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="de"> <!-- Dokumentensprache ist Deutsch -->
+<head>
+    <meta charset="UTF-8"> <!-- UTF-8 für Sonderzeichen wie Umlaute -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Responsives Design -->
+    
+    <!-- Seitentitel, wird durch untergeordnete Templates überschrieben -->
     <title>{% block title %}Productive Calendar{% endblock %}</title>
 
-    <!-- Stylesheets -->
+    <!-- ===================== STYLES ===================== -->
+    <!-- Lokales Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Google Material Icons (z. B. für Kalender-Icon, Account etc.) -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Font Awesome für weitere Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
+    <!-- Platzhalter für zusätzliche Styles (z. B. Kalender-spezifisch) -->
     {% block head %}{% endblock %}
-  </head>
-  <body>
+</head>
 
-    <!-- Navigationsleiste -->
+<body>
+
+    <!-- ===================== NAVIGATION ===================== -->
     <nav class="navbar">
-      <div class="nav-left">
-        <a href="/"><span class="material-icons">home</span> Home</a>
-        {% if session.get('user_id') %}
-          <a href="/dashboard"><span class="material-icons">calendar_today</span> Dashboard</a>
+        <div class="nav-left">
+            <!-- Home-Link -->
+            <a href="/"><span class="material-icons">home</span> Home</a>
 
-          <!-- Suchfeld zwischen Dashboard und Logout -->
-          <form class="search-nav-form" action="{{ url_for('search') }}" method="POST">
-            <button type="submit" title="Suchen"><span class="material-icons">search</span></button>
-            <input type="text" name="search_term" placeholder="Suchen..." required>
-          </form>
+            {% if session.get('user_id') %}
+                <!-- Dashboard-Link -->
+                <a href="/dashboard"><span class="material-icons">calendar_today</span> Dashboard</a>
 
-        {% else %}
-          <a href="/login"><span class="material-icons">login</span> Login</a>
-          <a href="/register"><span class="material-icons">person_add</span> Register</a>
-        {% endif %}
-      </div>
-
-      {% if session.get('user_id') %}
-      <!-- Profil Dropdown -->
-      <div class="profile-dropdown">
-        <button class="profile-icon" onclick="toggleProfileMenu()">
-          <span class="material-icons">account_circle</span>
-        </button>
-        <div id="profileDropdown" class="dropdown-content">
-          <a href="/profile/edit">Profil bearbeiten</a>
-          <a href="/profile/delete">Profil löschen</a>
-          <a href="{{ url_for('logout') }}">Logout</a>
+                <!-- Suchformular in der Navbar -->
+                <form class="search-nav-form" action="{{ url_for('search') }}" method="POST">
+                    <button type="submit" title="Suchen">
+                        <span class="material-icons">search</span>
+                    </button>
+                    <input type="text" name="search_term" placeholder="Suchen..." required>
+                </form>
+            {% else %}
+                <!-- Wenn der Benutzer nicht eingeloggt ist -->
+                <a href="/login"><span class="material-icons">login</span> Login</a>
+                <a href="/register"><span class="material-icons">person_add</span> Register</a>
+            {% endif %}
         </div>
-      </div>
-      {% endif %}
+
+        {% if session.get('user_id') %}
+        <!-- ===================== Profil-Dropdown für eingeloggte Nutzer ===================== -->
+        <div class="profile-dropdown">
+            <!-- Button mit Icon zum Öffnen des Dropdown-Menüs -->
+            <button class="profile-icon" onclick="toggleProfileMenu()">
+                <span class="material-icons">account_circle</span>
+            </button>
+
+            <!-- Dropdown-Inhalte -->
+            <div id="profileDropdown" class="dropdown-content">
+                <a href="/profile/edit">Profil bearbeiten</a>
+                <a href="/profile/delete">Profil löschen</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </div>
+        {% endif %}
     </nav>
 
-    <!-- Hauptinhalt -->
+    <!-- ===================== HAUPTINHALT ===================== -->
     <div class="container">
-      {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
     </div>
 
-    <!-- Dropdown-Logik -->
+    <!-- ===================== DROPDOWN-SKRIPT ===================== -->
     <script>
-      function toggleProfileMenu() {
-        const dropdown = document.getElementById("profileDropdown");
-        dropdown.classList.toggle("show");
-      }
-
-      window.onclick = function(event) {
-        if (!event.target.closest('.profile-icon')) {
-          const dropdowns = document.getElementsByClassName("dropdown-content");
-          for (let i = 0; i < dropdowns.length; i++) {
-            if (dropdowns[i].classList.contains('show')) {
-              dropdowns[i].classList.remove('show');
-            }
-          }
+        // Zeigt/versteckt das Profil-Dropdown-Menü
+        function toggleProfileMenu() {
+            const dropdown = document.getElementById("profileDropdown");
+            dropdown.classList.toggle("show");
         }
-      }
-    </script>
 
-  </body>
-</html>
+        // Schliesst

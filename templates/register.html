@@ -1,29 +1,51 @@
+{# ===================== Template-Vererbung ===================== #}
+{# Diese Seite basiert auf der übergeordneten layout.html, die das Grundgerüst (HTML, <head>, Navbar etc.) liefert #}
 {% extends "layout.html" %}
 
+{# ===================== Titel der Seite (Browser-Tab) ===================== #}
 {% block title %}Registrieren{% endblock %}
 
+{# ===================== Hauptinhalt der Seite ===================== #}
 {% block content %}
 <div class="container">
+    <!-- Überschrift der Seite -->
     <h2 style="text-align:center;">Registrierung</h2>
 
+    {# ===================== Anzeige von Flash-Nachrichten ===================== #}
+    {# Wird z. B. genutzt für "Benutzername bereits vergeben", "Erfolgreich registriert" usw. #}
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="flash-message">
-                {{ messages[0] }}
+                {{ messages[0] }}  {# Erste Flash-Nachricht wird angezeigt #}
             </div>
         {% endif %}
     {% endwith %}
 
+    {# ===================== Registrierungsformular ===================== #}
     <form method="POST" style="max-width: 400px; margin: 0 auto;">
+        <!-- Eingabefeld für Benutzernamen -->
         <label for="username">Benutzername:</label>
-        <input type="text" id="username" name="username" required>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            required
+        >
 
+        <!-- Eingabefeld für Passwort -->
         <label for="password">Passwort:</label>
-        <input type="password" id="password" name="password" required>
+        <input
+            type="password"
+            id="password"
+            name="password"
+            required
+        >
 
+        <!-- Absende-Button -->
         <button type="submit">Registrieren</button>
     </form>
 
+    {# ===================== Hinweis für bestehende Nutzer ===================== #}
     <p style="text-align:center; margin-top: 16px;">
         Bereits registriert? <a href="{{ url_for('login') }}">Zum Login</a>
     </p>

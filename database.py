@@ -1,5 +1,9 @@
 import sqlite3
 
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
 def create_db():
     # Verbindung zur SQLite-Datenbank herstellen (falls sie nicht existiert, wird sie erstellt)
     conn = sqlite3.connect('calendar.db')

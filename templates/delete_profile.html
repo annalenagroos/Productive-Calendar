@@ -1,22 +1,42 @@
+{# ===================== Template-Vererbung ===================== #}
+{# Erweitert die Hauptvorlage 'layout.html' – diese enthält wahrscheinlich das Grundgerüst wie <html>, <head>, <body> etc. #}
 {% extends 'layout.html' %}
 
+{# ===================== Titel der Seite ===================== #}
+{# Setzt den Titel im Browser-Tab auf "Profil löschen" #}
 {% block title %}Profil löschen{% endblock %}
 
+{# ===================== Hauptinhalt der Seite ===================== #}
 {% block content %}
+
 <div class="container">
+  <!-- Überschrift -->
   <h2>Profil wirklich löschen?</h2>
+
+  <!-- Warntext mit Hinweis auf Datenverlust -->
   <p>
     Bist du sicher, dass du dein Benutzerkonto <strong>dauerhaft</strong> löschen möchtest?
     <br>
     Alle Termine und Aufgaben werden unwiderruflich entfernt.
   </p>
 
-  <!-- Sichere POST-Anfrage zum tatsächlichen Löschen -->
+  <!-- Formular zum Löschen des Profils -->
+  <!-- Das Formular sendet eine POST-Anfrage an die Route 'delete_profile' -->
   <form method="POST" action="{{ url_for('delete_profile') }}">
+    
     <div class="form-group" style="margin-top: 20px;">
-      <button type="submit" class="btn btn-danger">Ja, Profil löschen</button>
-      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="margin-left: 10px;">Abbrechen</a>
+      <!-- Bestätigungs-Button in rotem (gefährlichen) Design -->
+      <button type="submit" class="btn btn-danger">
+        Ja, Profil löschen
+      </button>
+
+      <!-- Abbrechen-Link zurück zum Dashboard -->
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="margin-left: 10px;">
+        Abbrechen
+      </a>
     </div>
+
   </form>
 </div>
+
 {% endblock %}
