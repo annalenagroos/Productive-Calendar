@@ -1,39 +1,39 @@
 <!DOCTYPE html>
-<html lang="de"> <!-- Dokumentensprache ist Deutsch -->
+<html lang="de">
 <head>
-    <meta charset="UTF-8"> <!-- Zeichencodierung: UTF-8 für Umlaute und Sonderzeichen -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Für mobile Geräte skalierbar -->
-    <title>Profil bearbeiten</title> <!-- Seitentitel im Browser-Tab -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil bearbeiten</title>
 
-    <!-- Externes CSS wird eingebunden -->
+    <!-- Verlinkung zur externen CSS-Datei -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
-    <!-- Navigation am oberen Rand -->
+    <!-- Navigation -->
     <nav class="navbar">
-        <a href="/">Home</a> <!-- Link zur Startseite -->
-        <a href="/dashboard">Dashboard</a> <!-- Link zum Benutzer-Dashboard -->
-        <a href="/logout">Logout</a> <!-- Link zum Ausloggen -->
+        <a href="/">Home</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/logout">Logout</a>
     </nav>
 
-    <!-- Hauptinhalt -->
+    <!-- Inhalt -->
     <div class="container">
         <h2>Profil bearbeiten</h2>
 
-        <!-- Formular zur Bearbeitung des Profils -->
+        <!-- Formular zur Bearbeitung -->
         <form action="{{ url_for('edit_profile') }}" method="POST">
-            <!-- Eingabefeld für den Benutzernamen -->
+
+            <!-- Benutzername -->
             <label for="username">Benutzername:</label>
             <input
-                type="text"
-                id="username"
-                name="username"
-                value="{{ user.username }}"  <!-- Vorbefüllung mit aktuellem Benutzernamen -->
-                required
+               type="text"
+               id="username"
+               name="username"
+               value="{{ user.username }}"
+               required
             >
 
-            <!-- Aktuelles Passwort zur Bestätigung -->
+            <!-- Aktuelles Passwort -->
             <label for="current-password">Aktuelles Passwort:</label>
             <input
                 type="password"
@@ -42,7 +42,7 @@
                 required
             >
 
-            <!-- Neues Passwort (optional) -->
+            <!-- Neues Passwort -->
             <label for="new-password">Neues Passwort:</label>
             <input
                 type="password"
@@ -50,7 +50,7 @@
                 name="new-password"
             >
 
-            <!-- Bestätigung des neuen Passworts -->
+            <!-- Passwortbestätigung -->
             <label for="confirm-password">Neues Passwort bestätigen:</label>
             <input
                 type="password"
@@ -58,19 +58,18 @@
                 name="confirm-password"
             >
 
-            <!-- Absende-Button -->
+            <!-- Absenden -->
             <button type="submit">Speichern</button>
         </form>
 
-        <!-- Button zurück zum Dashboard -->
+        <!-- Zurück zum Dashboard -->
         <a href="/dashboard">
             <button type="button" class="back-button">Zurück zur Hauptseite</button>
         </a>
     </div>
 
-    <!-- JavaScript zum Schliessen von Dropdown-Menüs -->
+    <!-- Dropdown-Menü Logik (optional) -->
     <script>
-        // Wenn ausserhalb eines Dropdown-Icons geklickt wird, schliesse alle offenen Dropdowns
         window.onclick = function(event) {
             if (!event.target.matches('.profile-icon')) {
                 const dropdowns = document.getElementsByClassName("dropdown-content");
