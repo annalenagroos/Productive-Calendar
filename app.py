@@ -23,13 +23,15 @@ class Event(db.Model):
     title = db.Column(db.String(150), nullable=False)
     date = db.Column(db.Date, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    repeat = db.Column(db.String(20), default='none')  # Optionen: none, daily, weekly, monthly
+    repeat = db.Column(db.String(20), default='none')
+    is_archived = db.Column(db.Boolean, default=False)  # ✅ NEU
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(250), nullable=False)
     done = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    is_archived = db.Column(db.Boolean, default=False)  # ✅ NEU
 
 # ------------------- Auth & Benutzer -------------------
 @app.route('/')
@@ -192,6 +194,9 @@ def dashboard():
     events_raw = Event.query.filter_by(user_id=user_id).all()
     events = expand_recurring(events_raw)
     tasks = Task.query.filter_by(user_id=user_id).all()
+    archived_tasks = Task.query.filter_by(user_id=user_id, is_archived=True).all()
+    archived_events = Event.query.filter_by(user_id=user_id, is_archived=True).all()
+
 
     # 📊 Aufgabenstatistik berechnen
     total_tasks = len(tasks)
@@ -199,15 +204,18 @@ def dashboard():
     completion_rate = round((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
 
     return render_template(
-        'dashboard.html',
-        events=events,
-        tasks=tasks,
-        now=datetime.now(),
-        month_calendar=month_calendar,
-        total_tasks=total_tasks,
-        completed_tasks=completed_tasks,
-        completion_rate=completion_rate
+    'dashboard.html',
+    events=events,
+    tasks=tasks,
+    archived_tasks=archived_tasks,      # ✅ NEU
+    archived_events=archived_events,    # ✅ NEU
+    now=datetime.now(),
+    month_calendar=month_calendar,
+    total_tasks=total_tasks,
+    completed_tasks=completed_tasks,
+    completion_rate=completion_rate
     )
+
 
 # ------------------- Kalenderansicht -------------------
 @app.route('/calendar')

@@ -66,12 +66,31 @@ def delete_event(event_id):
 
 import datetime
 
+def archive_event(event_id):
+    # Verbindung zur SQLite-Datenbank herstellen
+    conn = sqlite3.connect('calendar.db')
+    cursor = conn.cursor()
+    
+def archive_event(event_id):
+    cursor.execute('''
+        INSERT INTO archived_events (id, title, date, description)
+        SELECT id, title, date, description FROM events WHERE id = ?
+    ''', (event_id,))
+    
+    # Ereignis aus der ursprünglichen Tabelle löschen
+    cursor.execute('DELETE FROM events WHERE id = ?', (event_id,))
+    
+    # Änderungen speichern und Verbindung schliessen
+    conn.commit()
+    conn.close()
+
 def archive_old_events():
     today = datetime.date.today()
-    for event in get_all_events():
+    for event in get_events():
         event_date = datetime.datetime.strptime(event["date"], "%Y-%m-%d").date()
         if event_date < today:
             archive_event(event["id"])  # Du brauchst eine archive_event(id)-Funktion
+
 
 def generate_weekly_event(title, weekday, weeks=10):
     today = datetime.date.today()
