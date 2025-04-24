@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
+from flask import jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import csv
 import io
@@ -208,6 +209,13 @@ def dashboard():
         completion_rate=completion_rate
     )
 
+# ------------------- Kalenderansicht -------------------
+@app.route('/calendar')
+def calendar_view():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('calendar.html')
+
 # ------------------- Aufgabenaktionen -------------------
 @app.route('/task/done/<int:id>')
 def task_done(id):
@@ -256,23 +264,45 @@ def export():
                      as_attachment=True,
                      download_name='kalender_export.csv')
 
-# ------------------- API für Kalender -------------------
-@app.route('/api/events')
-def api_events():
+# ------------------- Backup -------------------
+@app.route('/backup')
+def backup():
     if 'user_id' not in session:
-        return jsonify([])
+        return redirect(url_for('login'))
 
     user_id = session['user_id']
     events = Event.query.filter_by(user_id=user_id).all()
+    tasks = Task.query.filter_by(user_id=user_id).all()
 
-    event_list = []
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
+
     for event in events:
-        event_list.append({
+        writer.writerow(['Termin', event.title, event.date])
+    for task in tasks:
+        writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
+
+    output.seek(0)
+    return send_file(io.BytesIO(output.getvalue().encode()),
+                     mimetype='text/csv',
+                     as_attachment=True,
+                     download_name='backup.csv')
+
+# ------------------- API für Kalender -------------------
+@app.route('/api/events')
+def get_events():
+    events = []
+
+    all_events = Event.query.all()
+    for event in all_events:
+        events.append({
             'title': event.title,
-            'start': event.date.isoformat()
+            'start': event.date.strftime('%Y-%m-%d'),
+            'color': '#3a87ad'
         })
 
-    return jsonify(event_list)
+    return jsonify(events)
 
 # ------------------- Suche -------------------
 @app.route('/search', methods=['GET', 'POST'])

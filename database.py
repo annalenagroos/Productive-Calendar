@@ -27,18 +27,15 @@ def create_db():
 
 # Diese Funktion kannst du beim Starten deines Programms aufrufen
 
-def add_event(title, date, description):
-    # Verbindung zur SQLite-Datenbank herstellen
-    conn = sqlite3.connect('calendar.db')
+def add_event(title, date, description, category=None):
+    conn = sqlite3.connect("instance/database.db")  # ACHTUNG: richtige DB!
     cursor = conn.cursor()
-    
-    # SQL-Befehl zum Hinzufügen eines neuen Ereignisses
+
     cursor.execute('''
-        INSERT INTO events (title, date, description)
-        VALUES (?, ?, ?)
-    ''', (title, date, description))
-    
-    # Änderungen speichern und Verbindung schliessen
+        INSERT INTO event (title, date, description, category)
+        VALUES (?, ?, ?, ?)
+    ''', (title, date, description, category))
+
     conn.commit()
     conn.close()
 
@@ -66,3 +63,32 @@ def delete_event(event_id):
     # Änderungen speichern und Verbindung schliessen
     conn.commit()
     conn.close()
+
+import datetime
+
+def archive_old_events():
+    today = datetime.date.today()
+    for event in get_all_events():
+        event_date = datetime.datetime.strptime(event["date"], "%Y-%m-%d").date()
+        if event_date < today:
+            archive_event(event["id"])  # Du brauchst eine archive_event(id)-Funktion
+
+def generate_weekly_event(title, weekday, weeks=10):
+    today = datetime.date.today()
+    day_delta = (weekday - today.weekday()) % 7
+    first_date = today + datetime.timedelta(days=day_delta)
+
+    for i in range(weeks):
+        date = first_date + datetime.timedelta(weeks=i)
+        add_event(title=title, date=date.isoformat(), category="Wiederholung")
+
+def categorize_event(title):
+    keywords = {
+        "Sport": ["Yoga", "Training", "Laufen"],
+        "Arbeit": ["Meeting", "Projekt", "Deadline"],
+        "Privat": ["Arzt", "Geburtstag", "Familie"]
+    }
+    for category, words in keywords.items():
+        if any(word.lower() in title.lower() for word in words):
+            return category
+    return "Sonstiges"
