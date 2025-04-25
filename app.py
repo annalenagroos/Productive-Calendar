@@ -1,4 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
+# ===================== IMPORTS =====================
+from flask import (
+    Flask, render_template, request, redirect, url_for,
+    flash, session, send_file, jsonify
+)
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, date
 from markupsafe import Markup
@@ -8,17 +12,18 @@ import io
 import calendar
 
 # Eigene Module
-from extensions import db
-from models import User, Task, Event
-from custom_calendar import EventCalendar
-from calendar_tools import export_all_data
+from extensions import db                    # SQLAlchemy-Instanz
+from models import User, Task, Event         # DB-Modelle
+from custom_calendar import EventCalendar    # Eigener HTML-Kalender
+from calendar_tools import export_all_data   # Exportfunktion
 
+# ===================== APP SETUP =====================
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calendar.db'
 app.secret_key = "dein_sicherer_key"
 db.init_app(app)
 
-# ------------------- Auth -------------------
+# ===================== AUTHENTIFIZIERUNG =====================
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -33,8 +38,8 @@ def register():
             flash('Benutzername existiert bereits!')
             return redirect(url_for('register'))
 
-        password_hash = generate_password_hash(password)
-        new_user = User(username=username, password=password_hash)
+        hashed_pw = generate_password_hash(password)
+        new_user = User(username=username, password=hashed_pw)
         db.session.add(new_user)
         db.session.commit()
         flash('Registrierung erfolgreich!')
@@ -48,9 +53,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
+
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('dashboard'))
+
         flash('Login fehlgeschlagen.')
     return render_template('login.html')
 
@@ -63,22 +70,27 @@ def logout():
 def edit_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     user = User.query.get_or_404(session['user_id'])
+
     if request.method == 'POST':
         if request.form['username']:
             user.username = request.form['username']
         if request.form['password']:
-            user.password = request.form['password']
+            user.password = generate_password_hash(request.form['password'])
         db.session.commit()
         flash('Profil aktualisiert.')
         return redirect(url_for('dashboard'))
+
     return render_template('edit_profile.html', user=user)
 
 @app.route('/profile/delete', methods=['GET', 'POST'])
 def delete_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     user = User.query.get_or_404(session['user_id'])
+
     if request.method == 'POST':
         Task.query.filter_by(user_id=user.id).delete()
         Event.query.filter_by(user_id=user.id).delete()
@@ -87,12 +99,17 @@ def delete_profile():
         session.pop('user_id', None)
         flash('Dein Profil wurde gelöscht.')
         return redirect(url_for('index'))
+
     return render_template('delete_profile.html', user=user)
 
-# ------------------- Dashboard & Events -------------------
+# ===================== DASHBOARD =====================
 def expand_recurring(events):
+    """
+    Wandelt wiederkehrende Events in mehrere konkrete Termine um (max. 4 Wiederholungen).
+    """
     expanded = []
     today = datetime.today().date()
+
     for event in events:
         expanded.append(event)
         for i in range(1, 5):
@@ -109,16 +126,25 @@ def expand_recurring(events):
                     new_date = event.date.replace(year=year, month=month)
                 except ValueError:
                     continue
+
             if new_date and new_date >= today:
-                expanded.append(Event(title=event.title + " (Wdh)", date=new_date, user_id=event.user_id))
+                expanded.append(Event(
+                    title=event.title + " (Wdh)",
+                    date=new_date,
+                    user_id=event.user_id
+                ))
+
     return expanded
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     user_id = session['user_id']
+
     if request.method == 'POST':
+        # Event erstellen
         if 'event_title' in request.form:
             new_event = Event(
                 title=request.form['event_title'],
@@ -128,10 +154,13 @@ def dashboard():
             )
             db.session.add(new_event)
             db.session.commit()
+
+        # Aufgabe erstellen
         elif 'task_description' in request.form:
             new_task = Task(description=request.form['task_description'], user_id=user_id)
             db.session.add(new_task)
             db.session.commit()
+
         return redirect(url_for('dashboard'))
 
     events_raw = Event.query.filter_by(user_id=user_id).all()
@@ -139,8 +168,12 @@ def dashboard():
     tasks = Task.query.filter_by(user_id=user_id).all()
     archived_tasks = Task.query.filter_by(user_id=user_id, is_archived=True).all()
     archived_events = Event.query.filter_by(user_id=user_id, is_archived=True).all()
+
+    # Kalender-Rendering
     cal = EventCalendar(events)
     month_calendar = Markup(cal.formatmonth(datetime.now().year, datetime.now().month))
+
+    # Statistiken
     total_tasks = len(tasks)
     completed_tasks = len([t for t in tasks if t.done])
     completion_rate = round((completed_tasks / total_tasks) * 100) if total_tasks else 0
@@ -151,20 +184,23 @@ def dashboard():
         total_tasks=total_tasks, completed_tasks=completed_tasks,
         completion_rate=completion_rate)
 
+# ===================== EVENT- UND TASK-FUNKTIONEN =====================
 @app.route('/event/edit/<int:id>', methods=['GET', 'POST'])
 def edit_event(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     event = Event.query.filter_by(id=id, user_id=session['user_id']).first_or_404()
+
     if request.method == 'POST':
         event.title = request.form['title']
         event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
         db.session.commit()
         flash("Termin aktualisiert!")
         return redirect(url_for('dashboard'))
+
     return render_template('edit_event.html', event=event)
 
-# ------------------- Task- und Eventfunktionen -------------------
 @app.route('/task/done/<int:id>')
 def task_done(id):
     task = Task.query.get_or_404(id)
@@ -186,7 +222,7 @@ def delete_event(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-# ------------------- Kalender & API -------------------
+# ===================== KALENDER & API =====================
 @app.route('/calendar')
 def calendar_view():
     if 'user_id' not in session:
@@ -201,34 +237,41 @@ def get_events():
         for e in all_events
     ])
 
-# ------------------- CSV-Export & Backup -------------------
+# ===================== EXPORT & BACKUP =====================
 @app.route('/export')
 def export():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     output = StringIO()
     writer = csv.writer(output, delimiter=';')
     writer.writerow(["Typ", "Titel/Beschreibung", "Datum/Status"])
+
     for event in Event.query.filter_by(user_id=session['user_id']):
         writer.writerow(["Termin", event.title, event.date])
+
     for task in Task.query.filter_by(user_id=session['user_id']):
         writer.writerow(["Aufgabe", task.description, "Erledigt" if task.done else "Offen"])
+
     output.seek(0)
-    return send_file(BytesIO(output.getvalue().encode()), mimetype='text/csv', as_attachment=True, download_name='kalender_export.csv')
+    return send_file(BytesIO(output.getvalue().encode()), mimetype='text/csv',
+                     as_attachment=True, download_name='kalender_export.csv')
 
 @app.route('/backup')
 def backup():
     return export()
 
-# ------------------- Suche & Filter -------------------
+# ===================== SUCHE & FILTER =====================
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     user_id = session['user_id']
     search_term = request.form.get('search_term')
     event_date = request.form.get('event_date')
     filter_type = request.form.get('filter_type')
+
     events, tasks = [], []
 
     if request.method == 'POST':
@@ -239,6 +282,7 @@ def search():
             if event_date:
                 query = query.filter(Event.date == event_date)
             events = query.all()
+
         if filter_type in [None, '', 'task']:
             query = Task.query.filter_by(user_id=user_id)
             if search_term:
@@ -252,6 +296,7 @@ def search():
 def export_filtered():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+
     if request.method == 'GET':
         return render_template('export.html')
 
@@ -261,6 +306,7 @@ def export_filtered():
     filter_type = request.form.get('filter_type')
 
     events, tasks = [], []
+
     if filter_type in ['all', 'event']:
         query = Event.query.filter_by(user_id=user_id)
         if from_date:
@@ -268,21 +314,24 @@ def export_filtered():
         if to_date:
             query = query.filter(Event.date <= to_date)
         events = query.all()
+
     if filter_type in ['all', 'task']:
         tasks = Task.query.filter_by(user_id=user_id).all()
 
     output = io.StringIO()
     writer = csv.writer(output, delimiter=';')
     writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
+
     for event in events:
         writer.writerow(['Termin', event.title, event.date])
     for task in tasks:
         writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
 
     output.seek(0)
-    return send_file(io.BytesIO(output.getvalue().encode()), mimetype='text/csv', as_attachment=True, download_name='gefilterter_export.csv')
+    return send_file(io.BytesIO(output.getvalue().encode()), mimetype='text/csv',
+                     as_attachment=True, download_name='gefilterter_export.csv')
 
-# ------------------- Statistik (reines Python) -------------------
+# ===================== STATISTIK (reines HTML) =====================
 @app.route('/stats')
 def show_stats():
     today = date.today()
@@ -300,22 +349,20 @@ def show_stats():
     events_this_month = [e for e in events if e.date.month == current_month and e.date.year == current_year]
 
     output = f"""
-<!-- Material Icons einbinden -->
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-<h1><span class="material-icons">insights</span> Deine Monats-Statistik (Python-generiert)</h1>
-<p><strong><span class="material-icons">task_alt</span> Erledigte Aufgaben:</strong> 5</p>
-<p><strong><span class="material-icons">event</span> Anstehende Events im April:</strong> 3</p>
-<a href="/"><span class="material-icons">arrow_back</span> Zurück zur Startseite</a>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <h1><span class="material-icons">insights</span> Deine Monats-Statistik</h1>
+    <p><strong><span class="material-icons">task_alt</span> Erledigte Aufgaben:</strong> {len(completed_tasks)}</p>
+    <p><strong><span class="material-icons">event</span> Termine im Monat:</strong> {len(events_this_month)}</p>
+    <a href="/"><span class="material-icons">arrow_back</span> Zurück</a>
     """
     return Markup(output)
 
-# ------------------- Fehlerbehandlung -------------------
+# ===================== FEHLERSEITE =====================
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
-# ------------------- Start -------------------
+# ===================== START DER APP =====================
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
