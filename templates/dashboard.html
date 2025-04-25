@@ -1,160 +1,112 @@
-{# Basierend auf einem Template-Layout – vermutlich enthält es Grundstruktur wie <html>, <head>, <body> usw. #}
-    {% extends 'layout.html' %}
-    
-    {# Setzt den Seitentitel im Browser #}
-    {% block title %}Dashboard{% endblock %}
-    
-    {# Hauptinhalt der Seite beginnt #}
-    {% block content %}
-    
-    <!-- Kopfbereich des Dashboards -->
-    <div class="topbar">
-        <h2 class="page-title">
-            <span class="material-icons">calendar_today</span>
-            Dein Dashboard
-        </h2>
-        <div class="profile-dropdown">
-            <!-- Platzhalter für Benutzerprofil-Dropdown -->
-        </div>
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="topbar">
+    <h2 class="page-title">
+        <span class="material-icons">calendar_today</span>
+        Dein Dashboard
+    </h2>
+    <div class="profile-dropdown">
+        <!-- Platzhalter für Benutzerprofil-Dropdown -->
     </div>
-    
-    <!-- Grid-Container mit mehreren Kacheln (cards) -->
-    <div class="grid-container">
-    
-        <!-- Terminformular -->
-        <div class="card">
-            <h3>Neuen Termin hinzufügen</h3>
-            <form method="POST" action="{{ url_for('dashboard') }}">
-                <input type="text" name="event_title" placeholder="Titel" required>
-                <input type="date" name="event_date" required>
-    
-                <label for="event_repeat">Wiederholung:</label>
-                <select name="event_repeat" id="event_repeat">
-                    <option value="none">Einmalig</option>
-                    <option value="daily">Täglich</option>
-                    <option value="weekly">Wöchentlich</option>
-                    <option value="monthly">Monatlich</option>
-                </select>
-    
-                <button type="submit">+ Termin hinzufügen</button>
-            </form>
-        </div>
-    
-        <!-- Aufgabenformular -->
-        <div class="card">
-            <h3>Neue Aufgabe</h3>
-            <form method="POST" action="{{ url_for('dashboard') }}">
-                <input type="text" name="task_description" placeholder="Aufgabe" required>
-                
-                <label for="task_repeat">Wiederholung:</label>
-                <select name="task_repeat" id="task_repeat">
-                    <option value="none">Einmalig</option>
-                    <option value="daily">Täglich</option>
-                    <option value="weekly">Wöchentlich</option>
-                    <option value="monthly">Monatlich</option>
-                </select>
-    
-                <button type="submit">+ Aufgabe hinzufügen</button>
-            </form>
-        </div>
-    
-        <!-- Anzeige der Termine -->
-        <div class="card">
-            <h3><span class="material-icons">calendar_today</span> Deine Termine</h3>
-            {% if events %}
-                <ul>
-                    {% for event in events %}
+</div>
+
+<div class="grid-container">
+    {% from 'macros/forms.html' import entry_form %}
+
+    {{ entry_form("Neuen Termin hinzufügen", url_for('dashboard'), "event_title", "Titel", "event_repeat", "+ Termin hinzufügen", true) }}
+
+    {{ entry_form("Neue Aufgabe", url_for('dashboard'), "task_description", "Aufgabe", "task_repeat", "+ Aufgabe hinzufügen", false) }}
+
+    <div class="card">
+        <h3><span class="material-icons">calendar_today</span> Deine Termine</h3>
+        {% if events %}
+            <ul>
+                {% for event in events %}
+                <li>
+                    <span>{{ event.title }} am {{ event.date }}</span>
+                    <a href="/event/edit/{{ event.id }}" class="edit-link">✏️</a>
+                    <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Keine Termine eingetragen.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3><span class="material-icons">checklist</span> Deine Aufgaben</h3>
+        {% if tasks %}
+            <ul>
+                {% for task in tasks %}
                     <li>
-                        <span>{{ event.title }} am {{ event.date }}</span>
-                        <a href="/event/edit/{{ event.id }}" class="edit-link">✏️</a>
-                        <a href="/event/delete/{{ event.id }}" class="delete-link">🗑️</a>
+                        <form action="/task/done/{{ task.id }}" method="GET" style="display:inline;">
+                            <button type="submit" style="border: none; background: none; cursor: pointer;">
+                                <span class="material-icons">
+                                    {{ 'check_box' if task.done else 'check_box_outline_blank' }}
+                                </span>
+                            </button>
+                        </form>
+
+                        <span>
+                            {{ task.description }}
+                            {% if task.repeat != 'none' %}
+                                <span class="material-icons" style="font-size: 16px; vertical-align: middle;" title="Wiederkehrend">autorenew</span>
+                            {% endif %}
+                        </span>
+
+                        <a href="/task/delete/{{ task.id }}" class="delete-link">🗑️</a>
                     </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>Keine Termine eingetragen.</p>
-            {% endif %}
-        </div>
-    
-        <!-- Anzeige der Aufgaben -->
-        <div class="card">
-            <h3><span class="material-icons">checklist</span> Deine Aufgaben</h3>
-            {% if tasks %}
-                <ul>
-                    {% for task in tasks %}
-                        <li>
-                            <!-- Erledigt-Button -->
-                            <form action="/task/done/{{ task.id }}" method="GET" style="display:inline;">
-                                <button type="submit" style="border: none; background: none; cursor: pointer;">
-                                    <span class="material-icons">
-                                        {{ 'check_box' if task.done else 'check_box_outline_blank' }}
-                                    </span>
-                                </button>
-                            </form>
-    
-                            <!-- Aufgabenbeschreibung mit Wiederholungsicon -->
-                            <span>
-                                {{ task.description }}
-                                {% if task.repeat != 'none' %}
-                                    <span class="material-icons" style="font-size: 16px; vertical-align: middle;" title="Wiederkehrend">autorenew</span>
-                                {% endif %}
-                            </span>
-    
-                            <!-- Löschlink -->
-                            <a href="/task/delete/{{ task.id }}" class="delete-link">🗑️</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>Keine Aufgaben eingetragen.</p>
-            {% endif %}
-        </div>
-    
-        <!-- Aufgabenstatistik -->
-        <div class="card">
-            <h3><span class="material-icons">bar_chart</span> Aufgaben-Statistik</h3>
-            <p><strong>Gesamtaufgaben:</strong> {{ total_tasks }}</p>
-            <p><strong>Erledigte Aufgaben:</strong> {{ completed_tasks }}</p>
-            <p><strong>Erledigungsrate:</strong> {{ completion_rate }}%</p>
-        </div>
-    
-        <!-- Export-Optionen -->
-        <div class="card export-card">
-            <div><a href="{{ url_for('export') }}" class="btn btn-outline-secondary">📤 Exportieren</a>            </div>
-            <div><a href="/export-filter">📤 Gefilterter CSV-Export</a></div>
-            <div><a href="/backup">🗄️ Lokales Backup erstellen</a></div>
-        </div>
-    
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Keine Aufgaben eingetragen.</p>
+        {% endif %}
     </div>
-    {% endblock %}
-    
-    {# Externe Stylesheets, z. B. für Kalenderlayout #}
-    {% block styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
-    {% endblock %}
-    
-    {# JavaScript für FullCalendar Integration #}
-    {% block scripts %}
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
-    
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
-        if (calendarEl) {
-          const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'de',
-            height: 600,
-            headerToolbar: {
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,listMonth'
-            },
-            events: '/api/events'  // Holt sich die Termine als JSON
-          });
-          calendar.render();  // Rendert den Kalender im DOM
-        }
+
+    <div class="card">
+        <h3><span class="material-icons">bar_chart</span> Aufgaben-Statistik</h3>
+        <p><strong>Gesamtaufgaben:</strong> {{ total_tasks }}</p>
+        <p><strong>Erledigte Aufgaben:</strong> {{ completed_tasks }}</p>
+        <p><strong>Erledigungsrate:</strong> {{ completion_rate }}%</p>
+    </div>
+
+    <div class="card export-card">
+        <div><a href="{{ url_for('export') }}" class="btn btn-outline-secondary">📤 Exportieren</a></div>
+        <div><a href="/export-filter">📤 Gefilterter CSV-Export</a></div>
+        <div><a href="/backup">🗄️ Lokales Backup erstellen</a></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const calendarEl = document.getElementById('calendar');
+    if (calendarEl) {
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'de',
+        height: 600,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,listMonth'
+        },
+        events: '/api/events'
       });
-    </script>
-    {% endblock %}    
+      calendar.render();
+    }
+  });
+</script>
+{% endblock %}

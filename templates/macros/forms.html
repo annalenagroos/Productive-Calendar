@@ -1,0 +1,22 @@
+{% macro entry_form(title, action_url, field_name, field_placeholder, repeat_name, button_text, include_date) %}
+<div class="card">
+    <h3>{{ title }}</h3>
+    <form method="POST" action="{{ action_url }}">
+        <input type="text" name="{{ field_name }}" placeholder="{{ field_placeholder }}" required>
+
+        {% if include_date %}
+            <input type="date" name="event_date" required>
+        {% endif %}
+
+        <label for="{{ repeat_name }}">Wiederholung:</label>
+        <select name="{{ repeat_name }}" id="{{ repeat_name }}">
+            <option value="none">Einmalig</option>
+            <option value="daily">Täglich</option>
+            <option value="weekly">Wöchentlich</option>
+            <option value="monthly">Monatlich</option>
+        </select>
+
+        <button type="submit">{{ button_text }}</button>
+    </form>
+</div>
+{% endmacro %}
