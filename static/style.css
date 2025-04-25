@@ -461,3 +461,38 @@ button {
   .search-nav-form button:hover {
     color: #eeeeee;
   }  
+
+  .stats-container {
+    max-width: 600px;
+    margin: 60px auto;
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.stats-container h1 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    color: var(--main-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.stats-container p {
+    font-size: 18px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.stats-container .icon {
+    font-size: 24px;
+    color: var(--main-color);
+}

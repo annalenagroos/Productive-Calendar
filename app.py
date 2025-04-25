@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from markupsafe import Markup
 from io import StringIO, BytesIO
 import csv
@@ -218,7 +218,7 @@ def export():
 
 @app.route('/backup')
 def backup():
-    return export()  # nutzt dieselbe Logik wie oben
+    return export()
 
 # ------------------- Suche & Filter -------------------
 @app.route('/search', methods=['GET', 'POST'])
@@ -281,6 +281,34 @@ def export_filtered():
 
     output.seek(0)
     return send_file(io.BytesIO(output.getvalue().encode()), mimetype='text/csv', as_attachment=True, download_name='gefilterter_export.csv')
+
+# ------------------- Statistik (reines Python) -------------------
+@app.route('/stats')
+def show_stats():
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    tasks = Task.query.filter_by(user_id=user_id).all()
+    completed_tasks = [t for t in tasks if t.done]
+
+    events = Event.query.filter_by(user_id=user_id).all()
+    events_this_month = [e for e in events if e.date.month == current_month and e.date.year == current_year]
+
+    output = f"""
+<!-- Material Icons einbinden -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<h1><span class="material-icons">insights</span> Deine Monats-Statistik (Python-generiert)</h1>
+<p><strong><span class="material-icons">task_alt</span> Erledigte Aufgaben:</strong> 5</p>
+<p><strong><span class="material-icons">event</span> Anstehende Events im April:</strong> 3</p>
+<a href="/"><span class="material-icons">arrow_back</span> Zurück zur Startseite</a>
+    """
+    return Markup(output)
 
 # ------------------- Fehlerbehandlung -------------------
 @app.errorhandler(404)

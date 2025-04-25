@@ -64,7 +64,7 @@ def delete_event(event_id):
     conn.commit()
     conn.close()
 
-import datetime
+import datetime 
 
 def archive_event(event_id):
     # Verbindung zur SQLite-Datenbank herstellen

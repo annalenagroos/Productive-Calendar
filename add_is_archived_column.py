@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3 
 
 def add_column_if_not_exists(db_path, table_name, column_name, column_type):
     conn = sqlite3.connect(db_path)
