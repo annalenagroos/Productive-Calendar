@@ -1,184 +1,173 @@
+
 # Productive Calendar
 
-Productive Calendar ist eine webbasierte Kalender- und Aufgabenverwaltungs-App, die dir hilft, deinen Alltag produktiver zu gestalten. Sie kombiniert Kalenderfunktionen mit einer einfachen Benutzer- und Aufgabenverwaltung in einem übersichtlichen Interface.
-
-Team: Rejhan Nuradini, Mergim Jahija, Anna-Lena Groos
-
-Aufgabenverteilung:
-
-- **Anna-Lena:** Entwicklung
-- **Mergim:** Design
-- **Rejhan:** Design & Entwicklung
-
-# Projekt-Zeitplan: 29.03.2025 – 23.04.2025
-
-Ein realistischer Zeitplan für das Projekt **„Productive Calendar“**, aufgeteilt nach Wochen mit passenden Aufgabenpaketen.
-
-## Woche 1 – Projektaufbau & Grundfunktionen (29.03. – 04.04.)
-
-- Projektstruktur einrichten (Flask, Ordner, Git)
-- Setup der Entwicklungsumgebung (Python, virtualenv, requirements.txt)
-- Startseite & erste Routen (z. B. `/`, `/login`)
-- Datenbankmodell: User und Task erstellen
-- Login- & Registrierungsfunktion (HTML + Backend)
-
-## Woche 2 – Aufgabenverwaltung & Dashboard (05.04. – 11.04.)
-
-- Aufgabenformular: neue Aufgaben anlegen
-- Aufgaben im Dashboard anzeigen & löschen
-- Start der Kalenderintegration (Basislayout)
-- Erste Design-Verbesserungen (CSS-Styling, Layout)
-
-## Woche 3 – Kalender & Zusatzfunktionen (12.04. – 18.04.)
-
-- Kalender vollständig integrieren
-- Aufgaben in Kalender anzeigen (Datum zuweisen)
-
-## Woche 4 – Feinschliff & Dokumentation (19.04. – 23.04.)
-
-- README vervollständigen (mit Anleitung)
-- Projekt testen: Bugs beheben, kleine Verbesserungen
-- Präsentationsvorbereitung: Projekt vorstellen können
-- Finale Abgabe vorbereiten
-
-### Abgabebereit am: **25.04.2025**
-
-
-## Verwendete Technologien und Tools
-
-- Discord für die Kommunikation
-- Visual Studio Code (Entwicklungsumgebung)
-- Python, CSS und HTML als Programmiersprachen
-- **Backend:** Flask, SQLite
-- **Frontend:** HTML5, CSS3
-
-## Minimale Ziele
-
-1. **Projektgrundstruktur erstellen**
-
-Ziel: Eine funktionierende Flask-Applikation mit grundlegender Struktur.
-
-- Flask-App app.py aufsetzen
-- templates/, static/ und instance/-Ordner anlegen
-- erste Route (/) mit einer simplen HTML-Seite anzeigen
-- requirements.txt erstellen
-- Projekt lokal startbar machen (flask run)
-
-2. **Benutzerregistrierung & Login implementieren**
-
-Ziel: Nutzer können sich registrieren, einloggen und das Profil löschen.
-- HTML-Formulare: register.html und login.html
-- Flask-Login oder manuelles Session-Handling
-- Validierung von Eingaben
-- SQLite-Tabelle users erstellen
-- Schutz von Routen (z. B. /Dashboard nur mit Login erreichbar)
-
-3. **Aufgabenverwaltung aufbauen**
-
-Ziel: Nutzer können Aufgaben anlegen, ansehen und löschen.
-- models.py: Tabelle tasks mit Feldern wie Titel, Beschreibung, Datum, User-ID
-- HTML-Formular zur Erstellung neuer Aufgaben
-- Liste der Aufgaben im dashboard.html anzeigen
-- Aufgaben löschen können
-
-## Features
-
-- Benutzerregistrierung & Login-System
-- Aufgaben anlegen, anzeigen und verwalten
-- Kalenderansicht zur besseren Planung
-- Dashboard mit Übersicht der Aufgaben
-- Speicherung der Daten
-- Frontend mit HTML/CSS/JavaScript
-- Backend mit Flask (Python)
-
-## Erweiterte Ziele
-
-1. **Benachrichtigungssystem / Erinnerung**
-
-Ziel: Nutzer erhalten visuelle Erinnerungen an anstehende Aufgaben.
-- Anzeige von Aufgaben, die „heute“ oder „morgen“ fällig sind (z. B. in roter Box oben)
-- Optional: E-Mail-Erinnerung (via Flask-Mail)
-- Visualisierung: kleine Glocke im Dashboard mit „x neue Aufgaben für heute“
-- Aufgaben farblich markieren, wenn sie bald fällig oder überfällig sind
-
-2. **Statistik-Dashboard für persönliche Produktivität**
-
-Ziel: Übersicht, wie produktiv der Nutzer war.
-- Balken- oder Kreisdiagramm: erledigte vs. offene Aufgaben
-- Anzeige: „Du hast diese Woche 5 Aufgaben erledigt“
-- Nutzung von Chart.js oder Plotly (Frontend-Charting-Bibliothek)
-- Integration ins Dashboard
-
-3. **Wiederkehrende Aufgaben**
-
-Ziel: Aufgaben, die regelmässig auftauchen (z. B. jede Woche, jeden Monat).
-- Beim Erstellen: Option „Wöchentlich“, „Täglich“, etc.
-- Beim Speichern: neue Aufgabe wird automatisch geklont mit neuem Datum
-- Herausforderung: Logik & Datenbankdesign etwas komplexer
-
-## Installation
-
-## 1. App starten – Zwei Wege
-
-### Standardmethode (empfohlen): `flask run`
-
-#### Für Windows:
-```bash
-set FLASK_APP=app.py
-flask run
-```
-
-#### Für macOS / Linux:
-```bash
-export FLASK_APP=app.py
-flask run
-```
+Eine webbasierte Kalender- und Aufgabenverwaltungs-App, die strukturierte Planung, smarte Erinnerungen und eine klare Aufgabenübersicht vereint.
 
 ---
 
-### Alternative (einfach & direkt): `python app.py`
+## 1. Projektname & Team
+
+**Projektname:** Productive Calendar  
+**Team:**  
+- Rejhan Nuradini  
+- Mergim Jahija  
+- Anna-Lena Groos  
+
+### Aufgabenverteilung
+
+| Name         | Rolle                  | Zuständigkeiten |
+|--------------|------------------------|------------------|
+| Anna-Lena    | Backend-Entwicklung    | Datenbankmodell, Routenlogik, Authentifizierung |
+| Mergim       | Frontend & UI-Design   | CSS-Styling, Layout, HTML-Templates |
+| Rejhan       | Fullstack-Entwicklung  | Integration Frontend + Backend, Debugging, Featureentwicklung |
+
+---
+
+## 2. Projektbeschreibung – Was, Wie, Warum
+
+### Was ist das Ziel?
+Der *Productive Calendar* hilft Benutzer:innen dabei, Aufgaben effektiv zu planen, Fristen einzuhalten und ihre tägliche Produktivität zu steigern. Er kombiniert Kalender-, Aufgaben- und Benutzerverwaltung in einer kompakten Weblösung.
+
+### Wie funktioniert das?
+Das Projekt basiert auf dem Flask-Webframework (Python) und speichert Daten lokal mit SQLite. Die Nutzeroberfläche wird mit HTML5, CSS3 und JavaScript gestaltet.
+
+### Warum dieses Projekt?
+In Zeiten von Informationsflut ist es schwer, fokussiert zu bleiben. Die App zielt darauf ab, den Alltag durch visuelle Klarheit und einfache Bedienung produktiver zu machen – vor allem für Studierende und Teams in kleinen Projekten.
+
+---
+
+## 3. Iterativer Projektplan
+
+| Woche | Zeitraum         | Meilensteine |
+|-------|------------------|--------------|
+| 1     | 29.03 – 04.04    | Grundstruktur, Setup, Registrierung & Login |
+| 2     | 05.04 – 11.04    | Aufgabenverwaltung & Dashboard |
+| 3     | 12.04 – 18.04    | Kalender-Integration & UX-Verfeinerung |
+| 4     | 19.04 – 23.04    | Tests, Dokumentation, Präsentation |
+
+---
+
+## 4. Minimalziel – Detailliert
+
+**Ein funktionsfähiger Prototyp mit folgenden Kernfunktionen:**
+
+- User Registration & Login (Sessions, Zugriffsschutz)
+- Aufgaben anlegen, anzeigen und löschen
+- Dashboard mit Übersicht aller Aufgaben
+- Lokale Datenspeicherung (SQLite)
+- Einfache Benutzeroberfläche mit Navigation
+- Projekt lokal ausführbar per `flask run` oder `python app.py`
+
+---
+
+## 5. Erweiterte Ziele (Iterationsidee)
+
+1. **Benachrichtigungen & Erinnerungen**
+   - Anzeige von Aufgaben, die heute oder morgen fällig sind
+   - Visuelle Hinweise im Dashboard
+
+2. **Statistiken & Produktivitäts-Insights**
+   - Diagramme zu offenen vs. erledigten Tasks (z. B. via Chart.js)
+   - Motivierende Übersicht (z. B. „5 Aufgaben erledigt“)
+
+3. **Wiederkehrende Aufgaben**
+   - Automatisches Erstellen wiederholter Tasks
+   - Optionen: täglich, wöchentlich, monatlich
+
+4. **Responsive Design / Mobile View**
+   - Optimierung für mobile Endgeräte
+
+5. **Dark Mode (optional)**
+
+---
+
+## 6. Beispiel-User-Journey
+
+1. Nutzer registriert sich mit E-Mail & Passwort
+2. Login führt zum Dashboard mit leerer Aufgabenliste
+3. Über ein Formular erstellt er eine neue Aufgabe
+4. Aufgabe erscheint im Kalender am gewählten Datum
+5. Eine Benachrichtigung zeigt an, wenn eine Aufgabe heute fällig ist
+6. Der Nutzer kann Aufgaben als erledigt markieren oder löschen
+
+---
+
+## 7. Features (detailliert)
+
+| Feature                         | Beschreibung |
+|----------------------------------|--------------|
+| **Login & Registrierung**     | Authentifizierung mit Passwort-Validierung und Login-Schutz |
+| **Aufgabenverwaltung**        | Erstellen, Anzeigen, Löschen und Zuweisung von Aufgaben |
+| **Kalenderansicht**          | Aufgaben erscheinen nach Datum visuell im Kalender |
+| **Reminder-Funktion**         | Visuelle Warnung bei nahenden Deadlines |
+| **Profilverwaltung**         | Nutzer können Profil bearbeiten oder löschen |
+| **Lokale Speicherung**       | Alle Daten werden mit SQLite gespeichert |
+
+---
+
+## 8. Installation & Ausführen
+
+### Voraussetzungen
+
+- Python 3.10 oder neuer
+- Virtuelle Umgebung (empfohlen)
+
+### Starten der App
 
 ```bash
+# Methode A (empfohlen):
+export FLASK_APP=app.py     # oder: set FLASK_APP=app.py (Windows)
+flask run
+
+# Methode B (direkt):
 python app.py
 ```
 
--> Ideal für Einsteiger. Diese Methode startet die App direkt, ohne Umgebungsvariable.
+➡ Die App ist dann unter **http://127.0.0.1:5000/** erreichbar
 
 ---
 
-### Projekt im Browser öffnen
-Die App läuft nun lokal unter:
+## 9. Verwendete Technologien & Tools
 
-**http://127.0.0.1:5000/**
+| Kategorie      | Technologie         |
+|----------------|---------------------|
+| **Backend**    | Flask (Python), SQLite |
+| **Frontend**   | HTML5, CSS3, JavaScript |
+| **Entwicklung**| Visual Studio Code, Git |
+| **Teamarbeit** | Discord, GitHub |
 
+---
 
-
-## Verzeichnisstruktur
+## 10. Verzeichnisstruktur
 
 ```
 Productive-Calendar/
-│
-├── app.py                  # Flask-Anwendung
-├── models.py               # Datenbankmodelle, Routen und Views
+├── app.py                  # Hauptdatei für die Flask-App
+├── models.py               # Datenbank-Modelle
 ├── requirements.txt        # Abhängigkeiten
 ├── README.md               # Projektdokumentation
 │
 ├── instance/
-│   ├── database.db         # SQLite-Datenbank
-│   └── dashboard.db        # Weitere Datenbankdatei
+│   └── database.db         # SQLite-Datenbank
 │
 ├── static/
-│   ├── style.css           # CSS-Design
-│   └── script.js           # JavaScript-Funktionalität
+│   ├── style.css           # Design (CSS)
+│   └── script.js           # Interaktive Funktionen
 │
 ├── templates/
-│   ├── layout.html         # Gemeinsames Layout
+│   ├── layout.html         # Basislayout
 │   ├── index.html          # Startseite
-│   ├── dashboard.html      # Aufgabenübersicht
-│   ├── login.html          # Login-Formular
-│   ├── register.html       # Registrierungsformular
+│   ├── dashboard.html      # Hauptübersicht
+│   ├── login.html          # Loginmaske
+│   ├── register.html       # Registrierung
 │   ├── delete_profile.html # Profil löschen
 │   ├── edit_profile.html   # Profil bearbeiten
-│   ├── profile.html        # Benutzerprofil
-│   └── register.html       # Registrierungsformular
+│   └── profile.html        # Benutzerprofil
 ```
+
+---
+
+## Abgabe
+
+**Projektzeitraum:** 29.03.2025 – 26.04.2025  
+**Finale Abgabe:** **26.04.2025**
