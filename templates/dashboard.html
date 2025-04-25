@@ -1,7 +1,10 @@
+{# Dieses Template basiert auf layout.html und wird von Flask über render_template geladen #}
 {% extends 'layout.html' %}
 
+{# Setzt den Seitentitel im Browser-Tab #}
 {% block title %}Dashboard{% endblock %}
 
+{# Hauptinhalt des Dashboards #}
 {% block content %}
 <div class="topbar">
     <h2 class="page-title">
@@ -9,17 +12,21 @@
         Dein Dashboard
     </h2>
     <div class="profile-dropdown">
-        <!-- Platzhalter für Benutzerprofil-Dropdown -->
+        <!-- Hier könnte man z.B. Benutzerprofil-Optionen einbauen -->
     </div>
 </div>
 
 <div class="grid-container">
+    {# Import des Makros für Formulare #}
     {% from 'macros/forms.html' import entry_form %}
 
+    {# Termin-Formular mit Datumseingabe #}
     {{ entry_form("Neuen Termin hinzufügen", url_for('dashboard'), "event_title", "Titel", "event_repeat", "+ Termin hinzufügen", true) }}
 
+    {# Aufgaben-Formular ohne Datumseingabe #}
     {{ entry_form("Neue Aufgabe", url_for('dashboard'), "task_description", "Aufgabe", "task_repeat", "+ Aufgabe hinzufügen", false) }}
 
+    {# Anzeige aller Termine #}
     <div class="card">
         <h3><span class="material-icons">calendar_today</span> Deine Termine</h3>
         {% if events %}
@@ -37,6 +44,7 @@
         {% endif %}
     </div>
 
+    {# Anzeige aller Aufgaben #}
     <div class="card">
         <h3><span class="material-icons">checklist</span> Deine Aufgaben</h3>
         {% if tasks %}
@@ -67,6 +75,7 @@
         {% endif %}
     </div>
 
+    {# Statistik über Aufgaben #}
     <div class="card">
         <h3><span class="material-icons">bar_chart</span> Aufgaben-Statistik</h3>
         <p><strong>Gesamtaufgaben:</strong> {{ total_tasks }}</p>
@@ -74,6 +83,7 @@
         <p><strong>Erledigungsrate:</strong> {{ completion_rate }}%</p>
     </div>
 
+    {# Export-Optionen #}
     <div class="card export-card">
         <div><a href="{{ url_for('export') }}" class="btn btn-outline-secondary">📤 Exportieren</a></div>
         <div><a href="/export-filter">📤 Gefilterter CSV-Export</a></div>
@@ -82,10 +92,12 @@
 </div>
 {% endblock %}
 
+{# Zusätzliche Stylesheets für Kalender etc. #}
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
 {% endblock %}
 
+{# JavaScript für FullCalendar-Integration #}
 {% block scripts %}
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
@@ -103,7 +115,7 @@
           center: 'title',
           right: 'dayGridMonth,listMonth'
         },
-        events: '/api/events'
+        events: '/api/events'  // Lädt Termine vom Backend
       });
       calendar.render();
     }

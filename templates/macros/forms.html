@@ -2,12 +2,15 @@
 <div class="card">
     <h3>{{ title }}</h3>
     <form method="POST" action="{{ action_url }}">
+        <!-- Haupt-Eingabefeld: Titel oder Beschreibung -->
         <input type="text" name="{{ field_name }}" placeholder="{{ field_placeholder }}" required>
 
+        {# Optional: Nur bei Terminen – Datumseingabe #}
         {% if include_date %}
             <input type="date" name="event_date" required>
         {% endif %}
 
+        <!-- Dropdown für Wiederholungsoptionen -->
         <label for="{{ repeat_name }}">Wiederholung:</label>
         <select name="{{ repeat_name }}" id="{{ repeat_name }}">
             <option value="none">Einmalig</option>
@@ -16,6 +19,7 @@
             <option value="monthly">Monatlich</option>
         </select>
 
+        <!-- Absenden-Button -->
         <button type="submit">{{ button_text }}</button>
     </form>
 </div>
