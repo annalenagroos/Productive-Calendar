@@ -1,39 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
-from flask import jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
+from markupsafe import Markup
+from io import StringIO, BytesIO
 import csv
 import io
 import calendar
 
+# Eigene Module
+from extensions import db
+from models import User, Task, Event
+from custom_calendar import EventCalendar
+from calendar_tools import export_all_data
+
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dashboard.db'
-app.config['SECRET_KEY'] = 'supersecretkey'
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calendar.db'
+app.secret_key = "dein_sicherer_key"
+db.init_app(app)
 
-# ------------------- Datenbankmodelle -------------------
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-
-class Event(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    repeat = db.Column(db.String(20), default='none')
-    is_archived = db.Column(db.Boolean, default=False)  # ✅ NEU
-
-class Task(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.String(250), nullable=False)
-    done = db.Column(db.Boolean, default=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    is_archived = db.Column(db.Boolean, default=False)  # ✅ NEU
-
-# ------------------- Auth & Benutzer -------------------
+# ------------------- Auth -------------------
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -62,15 +47,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('dashboard'))
-
-        flash('Login fehlgeschlagen. Überprüfe Benutzername und Passwort.')
-
+        flash('Login fehlgeschlagen.')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -82,50 +63,22 @@ def logout():
 def edit_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     user = User.query.get_or_404(session['user_id'])
-
     if request.method == 'POST':
-        new_username = request.form['username']
-        new_password = request.form['password']
-
-        if new_username:
-            user.username = new_username
-        if new_password:
-            user.password = new_password
-
+        if request.form['username']:
+            user.username = request.form['username']
+        if request.form['password']:
+            user.password = request.form['password']
         db.session.commit()
-        flash('Profil erfolgreich aktualisiert.')
+        flash('Profil aktualisiert.')
         return redirect(url_for('dashboard'))
-
     return render_template('edit_profile.html', user=user)
-
-@app.route('/event/edit/<int:id>', methods=['GET', 'POST'])
-def edit_event(id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    event = Event.query.filter_by(id=id, user_id=session['user_id']).first()
-    if not event:
-        return "Event not found", 404
-
-    if request.method == 'POST':
-        event.title = request.form['title']
-        event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
-        db.session.commit()
-        flash("Termin aktualisiert!")
-        return redirect(url_for('dashboard'))
-
-    return render_template('edit_event.html', event=event)
-
 
 @app.route('/profile/delete', methods=['GET', 'POST'])
 def delete_profile():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     user = User.query.get_or_404(session['user_id'])
-
     if request.method == 'POST':
         Task.query.filter_by(user_id=user.id).delete()
         Event.query.filter_by(user_id=user.id).delete()
@@ -134,10 +87,9 @@ def delete_profile():
         session.pop('user_id', None)
         flash('Dein Profil wurde gelöscht.')
         return redirect(url_for('index'))
-
     return render_template('delete_profile.html', user=user)
 
-# ------------------- Wiederholende Termine aufbereiten -------------------
+# ------------------- Dashboard & Events -------------------
 def expand_recurring(events):
     expanded = []
     today = datetime.today().date()
@@ -161,70 +113,58 @@ def expand_recurring(events):
                 expanded.append(Event(title=event.title + " (Wdh)", date=new_date, user_id=event.user_id))
     return expanded
 
-# ------------------- Dashboard -------------------
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     user_id = session['user_id']
-
     if request.method == 'POST':
         if 'event_title' in request.form:
-            title = request.form['event_title']
-            date = datetime.strptime(request.form['event_date'], '%Y-%m-%d')
-            repeat = request.form.get('event_repeat', 'none')
-            new_event = Event(title=title, date=date, user_id=user_id, repeat=repeat)
+            new_event = Event(
+                title=request.form['event_title'],
+                date=datetime.strptime(request.form['event_date'], '%Y-%m-%d'),
+                repeat=request.form.get('event_repeat', 'none'),
+                user_id=user_id
+            )
             db.session.add(new_event)
             db.session.commit()
-            return redirect(url_for('dashboard'))
-
-        if 'task_description' in request.form:
-            description = request.form['task_description']
-            new_task = Task(description=description, user_id=user_id)
+        elif 'task_description' in request.form:
+            new_task = Task(description=request.form['task_description'], user_id=user_id)
             db.session.add(new_task)
             db.session.commit()
-            return redirect(url_for('dashboard'))
-
-    year = datetime.now().year
-    month = datetime.now().month
-    cal = calendar.HTMLCalendar(calendar.SUNDAY)
-    month_calendar = cal.formatmonth(year, month)
+        return redirect(url_for('dashboard'))
 
     events_raw = Event.query.filter_by(user_id=user_id).all()
     events = expand_recurring(events_raw)
     tasks = Task.query.filter_by(user_id=user_id).all()
     archived_tasks = Task.query.filter_by(user_id=user_id, is_archived=True).all()
     archived_events = Event.query.filter_by(user_id=user_id, is_archived=True).all()
-
-
-    # 📊 Aufgabenstatistik berechnen
+    cal = EventCalendar(events)
+    month_calendar = Markup(cal.formatmonth(datetime.now().year, datetime.now().month))
     total_tasks = len(tasks)
     completed_tasks = len([t for t in tasks if t.done])
-    completion_rate = round((completed_tasks / total_tasks) * 100) if total_tasks > 0 else 0
+    completion_rate = round((completed_tasks / total_tasks) * 100) if total_tasks else 0
 
-    return render_template(
-    'dashboard.html',
-    events=events,
-    tasks=tasks,
-    archived_tasks=archived_tasks,      # ✅ NEU
-    archived_events=archived_events,    # ✅ NEU
-    now=datetime.now(),
-    month_calendar=month_calendar,
-    total_tasks=total_tasks,
-    completed_tasks=completed_tasks,
-    completion_rate=completion_rate
-    )
+    return render_template('dashboard.html', events=events, tasks=tasks,
+        archived_tasks=archived_tasks, archived_events=archived_events,
+        now=datetime.now(), month_calendar=month_calendar,
+        total_tasks=total_tasks, completed_tasks=completed_tasks,
+        completion_rate=completion_rate)
 
-
-# ------------------- Kalenderansicht -------------------
-@app.route('/calendar')
-def calendar_view():
+@app.route('/event/edit/<int:id>', methods=['GET', 'POST'])
+def edit_event(id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('calendar.html')
+    event = Event.query.filter_by(id=id, user_id=session['user_id']).first_or_404()
+    if request.method == 'POST':
+        event.title = request.form['title']
+        event.date = datetime.strptime(request.form['date'], '%Y-%m-%d')
+        db.session.commit()
+        flash("Termin aktualisiert!")
+        return redirect(url_for('dashboard'))
+    return render_template('edit_event.html', event=event)
 
-# ------------------- Aufgabenaktionen -------------------
+# ------------------- Task- und Eventfunktionen -------------------
 @app.route('/task/done/<int:id>')
 def task_done(id):
     task = Task.query.get_or_404(id)
@@ -239,7 +179,6 @@ def delete_task(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-# ------------------- Ereignisse löschen -------------------
 @app.route('/event/delete/<int:id>')
 def delete_event(id):
     event = Event.query.get_or_404(id)
@@ -247,123 +186,81 @@ def delete_event(id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-# ------------------- Export CSV -------------------
+# ------------------- Kalender & API -------------------
+@app.route('/calendar')
+def calendar_view():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('calendar.html')
+
+@app.route('/api/events')
+def get_events():
+    all_events = Event.query.all()
+    return jsonify([
+        {'title': e.title, 'start': e.date.strftime('%Y-%m-%d'), 'color': '#3a87ad'}
+        for e in all_events
+    ])
+
+# ------------------- CSV-Export & Backup -------------------
 @app.route('/export')
 def export():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    events = Event.query.filter_by(user_id=user_id).all()
-    tasks = Task.query.filter_by(user_id=user_id).all()
-
-    output = io.StringIO()
+    output = StringIO()
     writer = csv.writer(output, delimiter=';')
-    writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
-
-    for event in events:
-        writer.writerow(['Termin', event.title, event.date])
-    for task in tasks:
-        writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
-
+    writer.writerow(["Typ", "Titel/Beschreibung", "Datum/Status"])
+    for event in Event.query.filter_by(user_id=session['user_id']):
+        writer.writerow(["Termin", event.title, event.date])
+    for task in Task.query.filter_by(user_id=session['user_id']):
+        writer.writerow(["Aufgabe", task.description, "Erledigt" if task.done else "Offen"])
     output.seek(0)
-    return send_file(io.BytesIO(output.getvalue().encode()),
-                     mimetype='text/csv',
-                     as_attachment=True,
-                     download_name='kalender_export.csv')
+    return send_file(BytesIO(output.getvalue().encode()), mimetype='text/csv', as_attachment=True, download_name='kalender_export.csv')
 
-# ------------------- Backup -------------------
 @app.route('/backup')
 def backup():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+    return export()  # nutzt dieselbe Logik wie oben
 
-    user_id = session['user_id']
-    events = Event.query.filter_by(user_id=user_id).all()
-    tasks = Task.query.filter_by(user_id=user_id).all()
-
-    output = io.StringIO()
-    writer = csv.writer(output, delimiter=';')
-    writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
-
-    for event in events:
-        writer.writerow(['Termin', event.title, event.date])
-    for task in tasks:
-        writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
-
-    output.seek(0)
-    return send_file(io.BytesIO(output.getvalue().encode()),
-                     mimetype='text/csv',
-                     as_attachment=True,
-                     download_name='backup.csv')
-
-# ------------------- API für Kalender -------------------
-@app.route('/api/events')
-def get_events():
-    events = []
-
-    all_events = Event.query.all()
-    for event in all_events:
-        events.append({
-            'title': event.title,
-            'start': event.date.strftime('%Y-%m-%d'),
-            'color': '#3a87ad'
-        })
-
-    return jsonify(events)
-
-# ------------------- Suche -------------------
+# ------------------- Suche & Filter -------------------
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     user_id = session['user_id']
     search_term = request.form.get('search_term')
     event_date = request.form.get('event_date')
     filter_type = request.form.get('filter_type')
-
-    events = []
-    tasks = []
+    events, tasks = [], []
 
     if request.method == 'POST':
         if filter_type in [None, '', 'event']:
-            events_query = Event.query.filter(Event.user_id == user_id)
+            query = Event.query.filter_by(user_id=user_id)
             if search_term:
-                events_query = events_query.filter(Event.title.ilike(f'%{search_term}%'))
+                query = query.filter(Event.title.ilike(f'%{search_term}%'))
             if event_date:
-                events_query = events_query.filter(Event.date == event_date)
-            events = events_query.all()
-
+                query = query.filter(Event.date == event_date)
+            events = query.all()
         if filter_type in [None, '', 'task']:
-            tasks_query = Task.query.filter(Task.user_id == user_id)
+            query = Task.query.filter_by(user_id=user_id)
             if search_term:
-                tasks_query = tasks_query.filter(Task.description.ilike(f'%{search_term}%'))
-            tasks = tasks_query.all()
+                query = query.filter(Task.description.ilike(f'%{search_term}%'))
+            tasks = query.all()
 
     return render_template('search.html', events=events, tasks=tasks,
                            search_term=search_term, event_date=event_date, filter_type=filter_type)
 
-
-# ------------------- Export CSV -------------------
 @app.route('/export-filter', methods=['GET', 'POST'])
 def export_filtered():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
     if request.method == 'GET':
         return render_template('export.html')
 
-    # POST – Filter auslesen
+    user_id = session['user_id']
     from_date = request.form.get('from_date')
     to_date = request.form.get('to_date')
     filter_type = request.form.get('filter_type')
 
-    events = []
-    tasks = []
-
+    events, tasks = [], []
     if filter_type in ['all', 'event']:
         query = Event.query.filter_by(user_id=user_id)
         if from_date:
@@ -371,34 +268,27 @@ def export_filtered():
         if to_date:
             query = query.filter(Event.date <= to_date)
         events = query.all()
-
     if filter_type in ['all', 'task']:
         tasks = Task.query.filter_by(user_id=user_id).all()
 
     output = io.StringIO()
-    writer = csv.writer(output, delimiter=';')  # ← CSV korrekt getrennt
+    writer = csv.writer(output, delimiter=';')
     writer.writerow(['Typ', 'Titel/Beschreibung', 'Datum/Status'])
-
     for event in events:
         writer.writerow(['Termin', event.title, event.date])
     for task in tasks:
         writer.writerow(['Aufgabe', task.description, 'Erledigt' if task.done else 'Offen'])
 
     output.seek(0)
-    return send_file(io.BytesIO(output.getvalue().encode()),
-                     mimetype='text/csv',
-                     as_attachment=True,
-                     download_name='gefilterter_export.csv')
+    return send_file(io.BytesIO(output.getvalue().encode()), mimetype='text/csv', as_attachment=True, download_name='gefilterter_export.csv')
 
-# ------------------- Fehlerbehandlung für 404 -------------------
+# ------------------- Fehlerbehandlung -------------------
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
-# ------------------- App starten -------------------
+# ------------------- Start -------------------
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run()
-
-
+    app.run(debug=True)

@@ -1,49 +1,43 @@
 # ===================== IMPORTS =====================
-from app import db  # Importiert die SQLAlchemy-Instanz aus deiner Flask-App
-from datetime import datetime  # Wird oft für Datumswerte gebraucht (z. B. für Events)
+from extensions import db
+from datetime import datetime
 
 # ===================== BENUTZERMODELL =====================
 class User(db.Model):
-    """
-    Datenbankmodell für einen Benutzer.
-    Jeder Benutzer kann mehrere Events und Tasks besitzen.
-    """
-    id = db.Column(db.Integer, primary_key=True)  # Eindeutige ID (automatisch generiert)
-    username = db.Column(db.String(150), unique=True, nullable=False)  # Benutzername, eindeutig & Pflichtfeld
-    password = db.Column(db.String(150), nullable=False)  # Passwort (meist gehashed)
+    __tablename__ = "user"
+    __table_args__ = {'extend_existing': True}
 
-    # Optional: Beziehung zu Events und Tasks (nur bei Bedarf aktivieren)
-    # events = db.relationship('Event', backref='user', lazy=True)
-    # tasks = db.relationship('Task', backref='user', lazy=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+    # Beziehungen
+    events = db.relationship('Event', backref='user', lazy=True)
+    tasks = db.relationship('Task', backref='user', lazy=True)
 
 
 # ===================== EVENTMODELL =====================
 class Event(db.Model):
-    """
-    Datenbankmodell für ein Ereignis (Kalendereintrag).
-    Verknüpft mit einem Benutzer (user_id als ForeignKey).
-    """
-    id = db.Column(db.Integer, primary_key=True)  # Eindeutige ID
-    title = db.Column(db.String(150), nullable=False)  # Titel des Events (Pflichtfeld)
-    date = db.Column(db.Date, nullable=False)  # Datum des Events (Pflichtfeld, kein Uhrzeitteil)
-    
-    # Fremdschlüssel: Verknüpft dieses Event mit einem Benutzer
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    __tablename__ = "event"
+    __table_args__ = {'extend_existing': True}
 
-    # Optionale Wiederholung: "none", "daily", "weekly", "monthly"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    date = db.Column(db.Date, nullable=False)
     repeat = db.Column(db.String(20), default='none')
+    is_archived = db.Column(db.Boolean, default=False)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 # ===================== TASKMODELL =====================
 class Task(db.Model):
-    """
-    Datenbankmodell für eine Aufgabe (To-do-Eintrag).
-    Verknüpft mit einem Benutzer (user_id als ForeignKey).
-    """
-    id = db.Column(db.Integer, primary_key=True)  # Eindeutige ID
-    description = db.Column(db.String(250), nullable=False)  # Beschreibung der Aufgabe (Pflichtfeld)
+    __tablename__ = "task"
+    __table_args__ = {'extend_existing': True}
 
-    done = db.Column(db.Boolean, default=False)  # Ob die Aufgabe erledigt wurde (Standard: Nein)
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(250), nullable=False)
+    done = db.Column(db.Boolean, default=False)
+    is_archived = db.Column(db.Boolean, default=False)
 
-    # Fremdschlüssel: Verknüpfung zu einem Benutzer
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
